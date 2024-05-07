@@ -5,35 +5,44 @@ from video_builder import VideoBuilder
 from entity.video_const import VideoConst
 
 
-# 主函数
 def main():
     config = configparser.ConfigParser()
     config.read('./config.ini')
 
-    parser = argparse.ArgumentParser(description='命令行参数示例')
-    # 添加参数选项
-    parser.add_argument('-u', '--username', type=str, help='用户名')
-    parser.add_argument('-p', '--password', type=str, help='密码')
-    parser.add_argument('-t', '--tips', type=str, help='提示词')
-    # 解析命令行参数
+    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser.add_argument('-s', '--service', type=str, help='service["RUN_WAY_TXT","RUN_WAY_IMG","PIKA"]')
+    parser.add_argument('-u', '--username', type=str, help='username')
+    parser.add_argument('-p', '--password', type=str, help='password')
+    parser.add_argument('-c', '--content', type=str, help='content:Prompt word/image local path')
     args = parser.parse_args()
     username = args.username
     password = args.password
-    tips = args.tips
-    if username is None:
-        username = config['Settings']['username']
-    if password is None:
-        password = config['Settings']['password']
+    content = args.content
+    service = args.service
 
-    if tips is None:
-        tips = config['Settings']['tips']
+    if service is None:
+        service = VideoConst.PIKA
+    if service != VideoConst.PIKA:
+        if username is None:
+            username = config['RUNWAY']['username']
+        if password is None:
+            password = config['RUNWAY']['password']
+
+    else:
+        if username is None:
+            username = config['PIKA']['username']
+        if password is None:
+            password = config['PIKA']['password']
+
+    if content is None:
+        content = config['CONTENT']['content']
 
     i_config = ConfigParser(username, password)
-    processor = VideoBuilder.create().set_config(i_config).set_tips(tips) \
-        .set_processor(VideoConst.RUN_WAY).build()
+    processor = VideoBuilder.create().set_config(i_config).set_content(content) \
+        .set_processor(service).build()
     download_link = processor.run()
 
-    print("视频链接:", download_link)
+    print("url:", download_link)
 
 
 if __name__ == "__main__":

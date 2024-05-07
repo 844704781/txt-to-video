@@ -3,27 +3,21 @@ from processor.runway_abstract_processor import RunWayAbstractParser
 
 
 class RunWayTxtParser(RunWayAbstractParser):
-    '''
-    处理runway
-    '''
-    LOGIN_PATH = 'https://app.runwayml.com/login'
-    GEN_PATH = 'https://app.runwayml.com/video-tools/teams/v2v2/ai-tools/gen-2'
 
     def write(self, page):
+        """
+        提交提示词
+        :param page:
+        :return:
+        """
         page.goto(self.GEN_PATH, wait_until="domcontentloaded")
         seconds = self.get_seconds(page)
         print(self.name + "当前余额:", seconds)
         print(self.name + "开始提交提示词")
         page.wait_for_selector('button.Button-sc-c1bth8-0')
         text_input = page.locator('textarea[aria-label="Text Prompt Input"]')
-        text_input.fill(self.tips)
+        text_input.fill(self.content)
         return True
-
-    def commit(self, page):
-        # 点击按钮
-        generate_button = page.locator('button:has-text("Generate 4s")')
-        generate_button.click()
-
 
 # 主函数
 def main():

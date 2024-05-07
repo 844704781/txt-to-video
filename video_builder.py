@@ -1,5 +1,7 @@
 from processor.abstract_processor import AbstractProcessor
 from processor.runway_txt_processor import RunWayTxtParser
+from processor.runway_img_processor import RunWayImgParser
+from processor.pika_processor import PikaProcessor
 from entity.iconfig_parser import ConfigParser
 from entity.video_const import VideoConst
 
@@ -9,7 +11,7 @@ class VideoBuilder:
     def __init__(self):
         self._video = None
         self._config = None
-        self._tips = None
+        self._content = None
 
     @staticmethod
     def create():
@@ -31,16 +33,20 @@ class VideoBuilder:
         self._config = config
         return self
 
-    def set_tips(self, tips: str):
-        self._tips = tips
+    def set_content(self, content: str):
+        self._content = content
         return self
 
     def build(self) -> AbstractProcessor:
-        if self.video == VideoConst.RUN_WAY:
-            p = RunWayTxtParser(self.config.username, self.config.password, VideoConst.RUN_WAY)
-            p.set_tips(self._tips)
-            return p
-        elif self.video == VideoConst.mro():
-            return None
+
+        if self.video == VideoConst.RUN_WAY_TXT:
+            return RunWayTxtParser(self.config.username, self.config.password, VideoConst.RUN_WAY_TXT) \
+                .set_content(self._content)
+        elif self.video == VideoConst.RUN_WAY_IMG:
+            return RunWayImgParser(self.config.username, self.config.password, VideoConst.RUN_WAY_TXT) \
+                .set_content(self._content)
+        elif self.video == VideoConst.PIKA:
+            return PikaProcessor(self.config.username, self.config.password, VideoConst.PIKA) \
+                .set_content(self._content)
         else:
             raise Exception("无效的VideoProcessor")

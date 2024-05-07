@@ -17,7 +17,7 @@ class RunWayAbstractParser(AbstractProcessor):
         try:
             page.goto(self.LOGIN_PATH, wait_until="domcontentloaded")
         except Exception as e:
-            return
+            raise e
         # 输入账号
         username_input = page.locator('input[name="usernameOrEmail"]')
         username_input.fill(self.username)
@@ -49,7 +49,7 @@ class RunWayAbstractParser(AbstractProcessor):
             percent = percent if count == 0 else 100
             self.print_progress(percent)
             if count > 0:
-                print(self.name + "\n视频生成成功")
+                print("\n" + self.name + "视频生成成功")
                 src_attribute = video_element.evaluate('''element => element.getAttribute('src')''')
                 break
             else:
@@ -70,6 +70,7 @@ class RunWayAbstractParser(AbstractProcessor):
     def write(self, page):
         pass
 
-    @abstractmethod
     def commit(self, page):
-        pass
+        # 点击按钮
+        generate_button = page.locator('button:has-text("Generate 4s")')
+        generate_button.click()

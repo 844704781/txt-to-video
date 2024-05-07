@@ -8,17 +8,17 @@ class AbstractProcessor:
     def __init__(self, username, password, name):
         self.username = username
         self.password = password
-        self.tips = None
+        self.content = None
         self.name = f'【{name}】'
 
-    def set_tips(self, tips):
+    def set_content(self, content):
 
         """
         设置提示词
-        :param tips:
+        :param content:
         :return:
         """
-        self.tips = tips
+        self.content = content
         return self
 
     @abstractmethod
@@ -55,7 +55,7 @@ class AbstractProcessor:
         """
         num_blocks = int(percent // 2)
         bar_length = 50
-        progress = self.name + '\r|' + '■' * num_blocks + ' ' * (bar_length - num_blocks) + '|' + str(percent) + "%"
+        progress = '\r|' + '■' * num_blocks + ' ' * (bar_length - num_blocks) + '|' + str(percent) + "%"
         print(f'{progress}', end='', flush=True)
 
     @abstractmethod
@@ -106,25 +106,25 @@ class AbstractProcessor:
             self.install_chromium()
             print("准备完成")
 
-        if len(self.tips) < 256:
-            print(f"{self.name}当前提示词:\t{self.tips}")
+        if len(self.content) < 256:
+            print(f"{self.name}当前提交内容:\t{self.content}")
 
         # 使用 Playwright 执行操作
         with sync_playwright() as p:
             browser = None
             href = None
             try:
-                browser = p.chromium.launch(headless=True)
+                browser = p.chromium.launch(headless=False)
                 print(self.name + "准备中...")
                 page = browser.new_page()
-                print(self.name + "登录中...")
+                # print(self.name + "登录中...")
                 self.login(page)
-                print(self.name + "登录成功")
-                print(self.name + "正在写入提示词...")
+                # print(self.name + "登录成功")
+                print(self.name + "正在写入内容...")
                 self.write(page)
 
                 self.commit(page)
-                print(self.name + "提交提示词,视频生成中...")
+                print(self.name + "提交内容,视频生成中...")
                 href = self.loading(page)
 
             finally:
