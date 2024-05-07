@@ -21,18 +21,18 @@ def main():
     service = args.service
 
     if service is None:
-        service = VideoConst.PIKA
-    if service != VideoConst.PIKA:
-        if username is None:
-            username = config['RUNWAY']['username']
-        if password is None:
-            password = config['RUNWAY']['password']
-
-    else:
+        service = VideoConst.PIKA_TXT
+    if service == VideoConst.PIKA_TXT or service == VideoConst.PIKA_IMG:
         if username is None:
             username = config['PIKA']['username']
         if password is None:
             password = config['PIKA']['password']
+
+    else:
+        if username is None:
+            username = config['RUNWAY']['username']
+        if password is None:
+            password = config['RUNWAY']['password']
 
     if content is None:
         content = config['CONTENT']['content']
@@ -41,7 +41,6 @@ def main():
     processor = VideoBuilder.create().set_config(i_config).set_content(content) \
         .set_processor(service).build()
     download_link = processor.run()
-
 
 
 if __name__ == "__main__":

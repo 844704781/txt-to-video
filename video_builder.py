@@ -1,7 +1,7 @@
 from processor.abstract_processor import AbstractProcessor
 from processor.runway_txt_processor import RunWayTxtParser
 from processor.runway_img_processor import RunWayImgParser
-from processor.pika_processor import PikaProcessor
+from processor.pika_txt_processor import PikaTxtAbstractProcessor
 from entity.iconfig_parser import ConfigParser
 from entity.video_const import VideoConst
 
@@ -45,8 +45,8 @@ class VideoBuilder:
         elif self.video == VideoConst.RUN_WAY_IMG:
             return RunWayImgParser(self.config.username, self.config.password, VideoConst.RUN_WAY_TXT) \
                 .set_content(self._content)
-        elif self.video == VideoConst.PIKA:
-            return PikaProcessor(self.config.username, self.config.password, VideoConst.PIKA) \
+        elif self.video == VideoConst.PIKA_TXT:
+            return PikaTxtAbstractProcessor(self.config.username, self.config.password, VideoConst.PIKA_TXT) \
                 .set_content(self._content)
         else:
             raise Exception("无效的VideoProcessor")
