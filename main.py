@@ -21,7 +21,7 @@ def main():
     service = args.service
 
     if service is None:
-        service = VideoConst.PIKA_TXT
+        service = VideoConst.PIKA_IMG
     if service == VideoConst.PIKA_TXT or service == VideoConst.PIKA_IMG:
         if username is None:
             username = config['PIKA']['username']
