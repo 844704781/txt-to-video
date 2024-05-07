@@ -55,8 +55,8 @@ class AbstractProcessor:
         """
         num_blocks = int(percent // 2)
         bar_length = 50
-        progress = '|' + '■' * num_blocks + ' ' * (bar_length - num_blocks) + '|' + str(percent) + "%"
-        print(f'{self.name}\r {progress}', end='', flush=True)
+        progress = self.name + '\r|' + '■' * num_blocks + ' ' * (bar_length - num_blocks) + '|' + str(percent) + "%"
+        print(f'{progress}', end='', flush=True)
 
     @abstractmethod
     def loading(self, page):

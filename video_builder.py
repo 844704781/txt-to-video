@@ -1,5 +1,5 @@
 from processor.abstract_processor import AbstractProcessor
-from processor.runway_processor import RunWayParser
+from processor.runway_txt_processor import RunWayTxtParser
 from entity.iconfig_parser import ConfigParser
 from entity.video_const import VideoConst
 
@@ -37,7 +37,7 @@ class VideoBuilder:
 
     def build(self) -> AbstractProcessor:
         if self.video == VideoConst.RUN_WAY:
-            p = RunWayParser(self.config.username, self.config.password, VideoConst.RUN_WAY)
+            p = RunWayTxtParser(self.config.username, self.config.password, VideoConst.RUN_WAY)
             p.set_tips(self._tips)
             return p
         elif self.video == VideoConst.mro():
