@@ -2,6 +2,7 @@ from abc import abstractmethod
 from playwright.sync_api import sync_playwright
 import subprocess
 import os
+from entity.video_const import VideoConst
 
 
 class AbstractProcessor:
@@ -11,6 +12,7 @@ class AbstractProcessor:
         self.content = None
         self.image = None
         self.name = f'【{name}】'
+        self.const = name
 
     def set_form(self, content, image):
 
@@ -107,18 +109,20 @@ class AbstractProcessor:
             print("初次使用,环境准备中")
             self.install_chromium()
             print("准备完成")
-
-        if len(self.content) < 256:
-            print(f"{self.name}当前提交提示词:\t{self.content}")
-        if 0 < len(self.image) < 256:
-            print(f"{self.name}当前提交图片:\t{self.image}")
+        if self.const in [VideoConst.PIKA_TXT, VideoConst.PIKA_MIX, 
+                          VideoConst.RUN_WAY_TXT, VideoConst.RUN_WAY_MIX]:
+            if len(self.content) < 256:
+                print(f"{self.name}当前提交提示词:\t{self.content}")
+        if self.const in [VideoConst.PIKA_IMG,VideoConst.PIKA_MIX,VideoConst.RUN_WAY_IMG,VideoConst.RUN_WAY_MIX]:
+            if 0 < len(self.image) < 256:
+                print(f"{self.name}当前提交图片:\t{self.image}")
 
         # 使用 Playwright 执行操作
         with sync_playwright() as p:
             browser = None
             href = None
             try:
-                browser = p.chromium.launch(headless=False)
+                browser = p.chromium.launch(headless=True)
                 print(self.name + "准备中...")
                 page = browser.new_page()
                 # print(self.name + "登录中...")
