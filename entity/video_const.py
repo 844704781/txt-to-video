@@ -1,5 +1,7 @@
 class VideoConst:
     RUN_WAY_TXT = "RUN_WAY_TXT"
     RUN_WAY_IMG = "RUN_WAY_IMG"
+    RUN_WAY_MIX = "RUN_WAY_MIX"
     PIKA_TXT = "PIKA_TXT"
     PIKA_IMG = "PIKA_IMG"
+    PIKA_MIX = "PIKA_MIX"

@@ -2,7 +2,7 @@ import time
 from processor.runway_abstract_processor import RunWayAbstractParser
 
 
-class RunWayImgParser(RunWayAbstractParser):
+class RunWayMixParser(RunWayAbstractParser):
     def write(self, page):
         """
         选择一张本地图片
@@ -12,7 +12,12 @@ class RunWayImgParser(RunWayAbstractParser):
         page.goto(self.GEN_PATH, wait_until="domcontentloaded")
         seconds = self.get_seconds(page)
         print(self.name + "当前余额:", seconds)
-        print(self.name + "开始提交图片")
+        print(self.name + "开始提交提示词和图片")
+
+        page.wait_for_selector('button.Button-sc-c1bth8-0')
+        text_input = page.locator('textarea[aria-label="Text Prompt Input"]')
+        text_input.fill(self.content)
+
         file_path = self.image
         page.locator("input[type='file']").set_input_files(file_path)
         order_sent = page.locator("div[data-uploading='false']")

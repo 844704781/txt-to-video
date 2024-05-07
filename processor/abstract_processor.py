@@ -9,9 +9,10 @@ class AbstractProcessor:
         self.username = username
         self.password = password
         self.content = None
+        self.image = None
         self.name = f'【{name}】'
 
-    def set_content(self, content):
+    def set_form(self, content, image):
 
         """
         设置提示词
@@ -19,6 +20,7 @@ class AbstractProcessor:
         :return:
         """
         self.content = content
+        self.image = image
         return self
 
     @abstractmethod
@@ -107,7 +109,9 @@ class AbstractProcessor:
             print("准备完成")
 
         if len(self.content) < 256:
-            print(f"{self.name}当前提交内容:\t{self.content}")
+            print(f"{self.name}当前提交提示词:\t{self.content}")
+        if 0 < len(self.image) < 256:
+            print(f"{self.name}当前提交图片:\t{self.image}")
 
         # 使用 Playwright 执行操作
         with sync_playwright() as p:

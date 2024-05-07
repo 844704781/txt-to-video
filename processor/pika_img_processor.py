@@ -9,6 +9,6 @@ class PikaImgProcessor(PikaAbstractProcessor):
         seconds = self.get_seconds(page)
         print(self.name + "当前余额:", seconds)
         print(self.name + "开始提交图片")
-        file_path = self.content
+        file_path = self.image
         page.locator("xpath=//input[@id='file-input']").set_input_files(file_path)
         pass

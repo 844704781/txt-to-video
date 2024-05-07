@@ -15,9 +15,9 @@ class RunWayAbstractParser(AbstractProcessor):
         self.LOGIN_PATH = host + '/login'
         self.GEN_PATH = host + '/video-tools/teams/v2v2/ai-tools/gen-2'
 
-        print(self.name + "checking ->" + host + "...")
+        print(self.name + "checking ->" + host)
         check_result = net_tools.check_website_availability(host)
-        print(self.name + "result ->" + check_result)
+        print(self.name + "result ->" + str(check_result))
         if not check_result:
             raise Exception("无法连接" + host + "请检查网络")
 
