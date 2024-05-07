@@ -42,7 +42,6 @@ def main():
         .set_processor(service).build()
     download_link = processor.run()
 
-    print("url:", download_link)
 
 
 if __name__ == "__main__":

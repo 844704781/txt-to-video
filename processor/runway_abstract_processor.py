@@ -1,3 +1,4 @@
+import net_tools
 from processor.abstract_processor import AbstractProcessor
 import time
 from abc import abstractmethod
@@ -10,8 +11,15 @@ class RunWayAbstractParser(AbstractProcessor):
 
     def __init__(self, username, password, name):
         super().__init__(username, password, name)
-        self.LOGIN_PATH = 'https://app.runwayml.com/login'
-        self.GEN_PATH = 'https://app.runwayml.com/video-tools/teams/v2v2/ai-tools/gen-2'
+        host = 'https://app.runwayml.com'
+        self.LOGIN_PATH = host + '/login'
+        self.GEN_PATH = host + '/video-tools/teams/v2v2/ai-tools/gen-2'
+
+        print(self.name + "checking ->" + host + "...")
+        check_result = net_tools.check_website_availability(host)
+        print(self.name + "result ->" + check_result)
+        if not check_result:
+            raise Exception("无法连接" + host + "请检查网络")
 
     def login(self, page):
         try:

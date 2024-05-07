@@ -114,7 +114,7 @@ class AbstractProcessor:
             browser = None
             href = None
             try:
-                browser = p.chromium.launch(headless=False)
+                browser = p.chromium.launch(headless=True)
                 print(self.name + "准备中...")
                 page = browser.new_page()
                 # print(self.name + "登录中...")
@@ -127,6 +127,7 @@ class AbstractProcessor:
                 print(self.name + "提交内容,视频生成中...")
                 href = self.loading(page)
 
+                print(self.name + "url:\t", href)
             finally:
                 browser.close()
             return href
