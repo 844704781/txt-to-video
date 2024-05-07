@@ -31,18 +31,18 @@ class AbstractProcessor:
         pass
 
     @abstractmethod
-    def write_tips(self, page):
+    def write(self, page):
         """
-        写提示词
+        写提示词/图片
         :param page:
         :return:
         """
         pass
 
     @abstractmethod
-    def commit_tips(self, page):
+    def commit(self, page):
         """
-        提交提示词
+        提交提示词/图片
         :param page:
         :return:
         """
@@ -121,9 +121,9 @@ class AbstractProcessor:
                 self.login(page)
                 print(self.name + "登录成功")
                 print(self.name + "正在写入提示词...")
-                self.write_tips(page)
+                self.write(page)
 
-                self.commit_tips(page)
+                self.commit(page)
                 print(self.name + "提交提示词,视频生成中...")
                 href = self.loading(page)
 

@@ -9,7 +9,7 @@ class RunWayTxtParser(RunWayAbstractParser):
     LOGIN_PATH = 'https://app.runwayml.com/login'
     GEN_PATH = 'https://app.runwayml.com/video-tools/teams/v2v2/ai-tools/gen-2'
 
-    def write_tips(self, page):
+    def write(self, page):
         page.goto(self.GEN_PATH, wait_until="domcontentloaded")
         seconds = self.get_seconds(page)
         print(self.name + "当前余额:", seconds)
@@ -19,7 +19,7 @@ class RunWayTxtParser(RunWayAbstractParser):
         text_input.fill(self.tips)
         return True
 
-    def commit_tips(self, page):
+    def commit(self, page):
         # 点击按钮
         generate_button = page.locator('button:has-text("Generate 4s")')
         generate_button.click()

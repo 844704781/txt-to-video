@@ -67,9 +67,9 @@ class RunWayAbstractParser(AbstractProcessor):
         return src_attribute
 
     @abstractmethod
-    def write_tips(self, page):
+    def write(self, page):
         pass
 
     @abstractmethod
-    def commit_tips(self, page):
+    def commit(self, page):
         pass

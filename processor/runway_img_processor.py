@@ -1,6 +1,10 @@
 import time
-from processor.abstract_processor import AbstractProcessor
+from processor.runway_abstract_processor import RunWayAbstractParser
 
 
-class RunWayTxtParser(AbstractProcessor):
-    pass
+class RunWayImgParser(RunWayAbstractParser):
+    def write(self, page):
+        pass
+
+    def commit(self, page):
+        pass
