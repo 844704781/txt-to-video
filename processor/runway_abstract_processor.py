@@ -2,8 +2,11 @@ import net_tools
 from processor.abstract_processor import AbstractProcessor
 import time
 from abc import abstractmethod
-
-
+import re
+from entity.error_code import ErrorCode
+from entity.result_utils import ResultDo
+import logging
+import logger_config
 class RunWayAbstractParser(AbstractProcessor):
     """
         处理runway公共方法
@@ -15,9 +18,9 @@ class RunWayAbstractParser(AbstractProcessor):
         self.LOGIN_PATH = host + '/login'
         self.GEN_PATH = host + '/video-tools/teams/v2v2/ai-tools/gen-2'
 
-        print(self.name + "checking ->" + host)
+        logging.info(self.name + "checking ->" + host)
         check_result = net_tools.check_website_availability(host)
-        print(self.name + "result ->" + str(check_result))
+        logging.info(self.name + "result ->" + str(check_result))
         if not check_result:
             raise Exception("无法连接" + host + "请检查网络")
 
@@ -43,8 +46,19 @@ class RunWayAbstractParser(AbstractProcessor):
         return page.context.cookies()
 
     def get_seconds(self, page):
+        def extract_number(text):
+            match = re.search(r'\d+', text)
+            if match:
+                return int(match.group())
+            else:
+                return 0
+
         p_tag = page.locator('.Text-sc-cweq7v-1.GetMoreCreditsButton__UnitsLeftText-sc-66lapz-0.fNdEQX')
-        return p_tag.inner_text()
+        count_text = p_tag.inner_text()
+        count = extract_number(count_text)
+        if count < 10:
+            raise Exception(ResultDo(ErrorCode.INSUFFICIENT_BALANCE, f"当前余额:{count},余额不足,请充值"))
+        return count
 
     def loading(self, page):
         # 等待生成结果
@@ -57,7 +71,7 @@ class RunWayAbstractParser(AbstractProcessor):
             percent = percent if count == 0 else 100
             self.print_progress(percent)
             if count > 0:
-                print("\n" + self.name + "视频生成成功")
+                logging.info("\n" + self.name + "视频生成成功")
                 src_attribute = video_element.evaluate('''element => element.getAttribute('src')''')
                 break
             else:

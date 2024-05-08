@@ -1,9 +1,14 @@
 import time
 from abc import abstractmethod
+import re
 
 from processor.abstract_processor import AbstractProcessor
 import net_tools
+from entity.error_code import ErrorCode
+from entity.result_utils import ResultDo
 
+import logging
+import logger_config
 
 class PikaAbstractProcessor(AbstractProcessor):
 
@@ -11,9 +16,9 @@ class PikaAbstractProcessor(AbstractProcessor):
         super().__init__(username, password, name)
         host = 'https://pika.art'
         self.LOGIN_PATH = host + '/login'
-        print(self.name + "checking ->" + host)
+        logging.info(self.name + "checking ->" + host)
         check_result = net_tools.check_website_availability(host)
-        print(self.name + "result ->" + str(check_result))
+        logging.info(self.name + "result ->" + str(check_result))
         if not check_result:
             raise Exception("无法连接" + host + "请检查网络")
 
@@ -75,13 +80,13 @@ class PikaAbstractProcessor(AbstractProcessor):
 
             if dasharray is None:
 
-                print("\n" + self.name + "视频生成成功")
+                logging.info("\n" + self.name + "视频生成成功")
                 video = page.locator(
                     "xpath=//main//div[contains(@class,'group/card')][1]//div[@class='relative']//video/source")
                 try:
                     link = video.get_attribute('src')
                 except Exception as e:
-                    print(self.name + "Something went wrong while generating this video")
+                    logging.error(self.name + "Something went wrong while generating this video")
                     link = None
                 break
             else:
@@ -93,5 +98,16 @@ class PikaAbstractProcessor(AbstractProcessor):
         return link
 
     def get_seconds(self, page):
+        def extract_number(text):
+            match = re.search(r'\d+', text)
+            if match:
+                return int(match.group())
+            else:
+                return 0
+
         p_tag = page.locator("xpath=//div[contains(@class,'bg-plan-credits')]/p")
-        return p_tag.inner_text()
+
+        count = extract_number(p_tag.inner_text())
+        if count < 10:
+            raise Exception(ResultDo(ErrorCode.INSUFFICIENT_BALANCE, f"当前余额:{count},余额不足,请充值"))
+        return count

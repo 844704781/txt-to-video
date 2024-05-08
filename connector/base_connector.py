@@ -5,7 +5,8 @@ import configparser
 from entity.error_code import ErrorCode
 from entity.result_utils import ResultDo
 import os
-
+import logging
+import logger_config
 '''
 针对下面服务器接口的基类
 https://ct4.dianbaobao.com
@@ -46,13 +47,14 @@ class BaseConnector:
 
         param_str += f"{timestamp}{private_key}"
         param_str = param_str.lower()
+        logging.debug("签名数据:" + param_str)
         md5_hash = hashlib.md5(param_str.encode()).hexdigest()
         return md5_hash
-
+    
     def post(self, uri, payload):
-        print("-" * 50)
+        logging.debug("-" * 50)
         url = self.__base_url + uri
-        print("请求地址:", url)
+        logging.debug("请求地址:%s", url)
         timestamp = str(int(time.time()))
         p = self.__private_key
         signature = self.__generate_md5_signature(timestamp, payload, p)
@@ -63,12 +65,12 @@ class BaseConnector:
             "x-pid": self.__partner_id,
             "x-sign": signature
         }
-        print("请求header:", headers)
-        print("请求参数:", payload)
+        logging.debug("请求header:%s", headers)
+        logging.debug("请求参数:%s", payload)
         response = requests.post(url, headers=headers, json=payload)
         data = response.text
-        print("请求响应:", data)
-        print("-" * 50)
+        logging.debug("请求响应:%s", data)
+        logging.debug("-" * 50)
         if response.status_code != 200:
             raise Exception(ResultDo(ErrorCode.ERR_DIAN_BAOBAO, "服务器错误:" + data))
         data = response.json()

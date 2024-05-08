@@ -8,10 +8,13 @@ from processor.pika_mix_processor import PikaMixProcessor
 from entity.iconfig_parser import ConfigParser
 from entity.video_const import VideoConst
 
+from typing import Optional, Callable
+
 
 class VideoBuilder:
 
     def __init__(self):
+        self._progress_callback = None
         self._video = None
         self._config = None
         self._content = None
@@ -42,31 +45,35 @@ class VideoBuilder:
         self._image = image
         return self
 
+    def progress_callback(self, callback: object = None):
+        self._progress_callback = callback
+        return self
+
     def build(self) -> AbstractProcessor:
 
         if self.video == VideoConst.RUN_WAY_TXT:
 
             return RunWayTxtParser(self.config.username, self.config.password, VideoConst.RUN_WAY_TXT) \
-                .set_form(self._content, self._image)
+                .set_form(self._content, self._image).set_progress_callback(self._progress_callback)
         elif self.video == VideoConst.RUN_WAY_IMG:
 
             return RunWayImgParser(self.config.username, self.config.password, VideoConst.RUN_WAY_TXT) \
-                .set_form(self._content, self._image)
+                .set_form(self._content, self._image).set_progress_callback(self._progress_callback)
         elif self.video == VideoConst.RUN_WAY_MIX:
 
             return RunWayMixParser(self.config.username, self.config.password, VideoConst.RUN_WAY_MIX) \
-                .set_form(self._content, self._image)
+                .set_form(self._content, self._image).set_progress_callback(self._progress_callback)
         elif self.video == VideoConst.PIKA_TXT:
 
             return PikaTxtAbstractProcessor(self.config.username, self.config.password, VideoConst.PIKA_TXT) \
-                .set_form(self._content, self._image)
+                .set_form(self._content, self._image).set_progress_callback(self._progress_callback)
         elif self.video == VideoConst.PIKA_IMG:
 
             return PikaImgProcessor(self.config.username, self.config.password, VideoConst.PIKA_IMG) \
-                .set_form(self._content, self._image)
+                .set_form(self._content, self._image).set_progress_callback(self._progress_callback)
         elif self.video == VideoConst.PIKA_MIX:
 
             return PikaMixProcessor(self.config.username, self.config.password, VideoConst.PIKA_MIX) \
-                .set_form(self._content, self._image)
+                .set_form(self._content, self._image).set_progress_callback(self._progress_callback)
         else:
             raise Exception("无效的VideoProcessor")

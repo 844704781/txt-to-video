@@ -1,6 +1,8 @@
 import time
 from processor.runway_abstract_processor import RunWayAbstractParser
 
+import logging
+import logger_config
 
 class RunWayMixParser(RunWayAbstractParser):
     def write(self, page):
@@ -11,8 +13,8 @@ class RunWayMixParser(RunWayAbstractParser):
         """
         page.goto(self.GEN_PATH, wait_until="domcontentloaded")
         seconds = self.get_seconds(page)
-        print(self.name + "当前余额:", seconds)
-        print(self.name + "开始提交提示词和图片")
+        logging.info(self.name + "当前余额:%s", seconds)
+        logging.info(self.name + "开始提交提示词和图片")
 
         page.wait_for_selector('button.Button-sc-c1bth8-0')
         text_input = page.locator('textarea[aria-label="Text Prompt Input"]')

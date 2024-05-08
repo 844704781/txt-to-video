@@ -4,12 +4,13 @@ from playhouse.pool import PooledSqliteDatabase
 from entity.task_status import Status
 from entity.task_make_type import MakeType
 import os
-
+import logging
+import logger_config
 current_dir = os.path.dirname(__file__)
 project_root = os.path.abspath(os.path.join(current_dir, ".."))
 
 # 配置数据库连接池
-database = PooledSqliteDatabase(project_root + '/task.db', max_connections=8, check_same_thread=False)
+database = PooledSqliteDatabase(project_root + '/task.db', max_connections=500, check_same_thread=False)
 
 
 # 定义模型类
@@ -36,6 +37,7 @@ class Task(BaseModel):
     status = peewee.IntegerField(choices=[(status.value, status.name) for status in Status], default=Status.CREATED)
     status_is_sync = peewee.IntegerField(default=1)  # 状态是否与服务器同步 0:未同步 1:已同步
     message = peewee.TextField(null=True)
+    server_message = peewee.TextField(null=True)
     video_url = peewee.TextField(null=True)
     create_time = peewee.IntegerField(default=int(datetime.datetime.now().timestamp()))
     update_time = peewee.IntegerField(default=int(datetime.datetime.now().timestamp()))
@@ -76,7 +78,7 @@ class TaskMapper:
             pass  # 如果找不到任务，则忽略异常
 
     @staticmethod
-    def count(source):
+    def unsync_count(source):
         return Task.select().where((Task.source == source) & (Task.status_is_sync == 0)).count()
 
     @staticmethod
@@ -101,30 +103,77 @@ class TaskMapper:
             fail_tasks = Task.select().where(Task.status == Status.FAIL).limit(remaining_size)
             executable_tasks.extend(fail_tasks)
 
+        # remaining_size = size - len(executable_tasks)
+        # # 如果没有刚创建的任务或者任务数量不够，再获取失败的任务
+        # if remaining_size > 0:
+        #     fail_tasks = Task.select().where(Task.status == Status.DOING).limit(remaining_size)
+        #     executable_tasks.extend(fail_tasks)
+
         return executable_tasks
 
     @staticmethod
-    def set_status(task_id, status):
+    def set_status(task_id, status, message: str = None):
         """
         设置任务的状态，仅限于不是成功状态的任务
+        :param message:
         :param task_id: 任务 ID
         :param status: 要设置的状态
         """
         try:
             task = Task.select().where((Task.task_id == task_id) & (Task.status != Status.SUCCESS)).first()
             task.status = status
+            task.status_is_sync = 0
+            if message is not None:
+                task.message = message
             task.save()
         except Task.DoesNotExist:
-            print(f"Task with ID {task_id} not found or already in SUCCESS status.")
+            logging.info(f"Task with ID {task_id} not found or already in SUCCESS status.")
 
     @staticmethod
     def set_success(task_id, video_url):
         try:
             task = Task.select().where((Task.task_id == task_id) & (Task.status != Status.SUCCESS)).first()
+            task.status = Status.SUCCESS.value
             task.video_url = video_url
             task.save()
         except Task.DoesNotExist:
-            print(f"Task with ID {task_id} not found or already in SUCCESS status.")
+            logging.info(f"Task with ID {task_id} not found or already in SUCCESS status.")
+
+    @staticmethod
+    def set_progress(progress, task_id):
+        try:
+            task = Task.select().where((Task.task_id == task_id) & (Task.status != Status.SUCCESS)).first()
+            task.progress = progress
+            task.status = Status.DOING
+            task.save()
+        except Task.DoesNotExist:
+            logging.info(f"Task with ID {task_id} not found or already in SUCCESS status.")
+
+    @staticmethod
+    def update_server_message(message, task_id):
+        if message is None:
+            return
+        try:
+            task = Task.select().where((Task.task_id == task_id) & (Task.status != Status.SUCCESS)).first()
+            task.server_message = message
+            task.save()
+        except Task.DoesNotExist:
+            logging.info(f"Task with ID {task_id} not found or already in SUCCESS status.")
+
+    @staticmethod
+    def get(task_id):
+        try:
+            return Task.select().where((Task.task_id == task_id) & (Task.status != Status.SUCCESS)).first()
+        except Task.DoesNotExist:
+            return None
+
+    @staticmethod
+    def get_doing_tasks():
+        """
+        获取当前正在执行的任务列表
+        :return: 当前正在执行的任务列表
+        """
+        return Task.select().where(Task.status == Status.DOING)
 
 
 # 创建表
