@@ -1,0 +1,6 @@
+class ErrorCode:
+    OK = 0
+    UNKNOWN = 10001
+    ERR_DIAN_BAOBAO = 10002
+    ERR_BROWSER = 10003
+    UNSUPPORTED = 10004

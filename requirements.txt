@@ -1,10 +1,16 @@
+APScheduler==3.10.4
+backports.zoneinfo==0.2.1
 certifi==2024.2.2
 charset-normalizer==3.3.2
 configparser==7.0.0
 greenlet==3.0.3
 idna==3.7
+peewee==3.17.3
 playwright==1.43.0
 pyee==11.1.0
+pytz==2024.1
 requests==2.31.0
+six==1.16.0
 typing_extensions==4.11.0
+tzlocal==5.2
 urllib3==2.2.1
