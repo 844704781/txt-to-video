@@ -1,11 +1,15 @@
 import os
 import logging
-from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
+from logging.handlers import RotatingFileHandler
 import sys
 
 # 获取当前项目根目录
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 LOG_DIR = os.path.join(PROJECT_ROOT, 'logs')
+
+# 如果日志目录不存在，则创建
+if not os.path.exists(LOG_DIR):
+    os.makedirs(LOG_DIR)
 
 # 创建日志记录器
 logger = logging.getLogger()
