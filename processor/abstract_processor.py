@@ -134,7 +134,7 @@ class AbstractProcessor:
             browser = None
             href = None
             try:
-                browser = p.chromium.launch(headless=True)
+                browser = p.chromium.launch(headless=False)
                 logging.info(self.name + "准备中...")
                 page = browser.new_page()
                 # logging.info(self.name + "登录中...")

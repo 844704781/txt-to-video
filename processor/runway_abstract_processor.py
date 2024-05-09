@@ -51,12 +51,16 @@ class RunWayAbstractParser(AbstractProcessor):
 
     def get_seconds(self, page):
         def extract_number(text):
+            if text =='Unlimited':
+                return 2147483647
+
             match = re.search(r'\d+', text)
             if match:
                 return int(match.group())
             else:
                 return 0
 
+        # TODO处理无次数限制情况
         p_tag = page.locator('.Text-sc-cweq7v-1.GetMoreCreditsButton__UnitsLeftText-sc-66lapz-0.fNdEQX')
         count_text = p_tag.inner_text()
         count = extract_number(count_text)

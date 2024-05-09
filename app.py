@@ -5,7 +5,7 @@ from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 from connector.runway_connector import RunwayConnector
 from connector.pika_connector import PikaConnector
-from db.taskdb import create_tables, is_table_created, TaskMapper, Source
+from db.taskdb import create_tables, is_table_created, TaskMapper, Source, sync_table_structure
 from entity.task_status import Status
 from entity.video_const import transfer
 from entity.result_utils import ResultDo
@@ -265,13 +265,13 @@ def callback_pika():
     callback(pikaConnector, Source.PIKA)
 
 
+logging.info("初始化中...")
 # 在项目第一次启动时创建表
 if not is_table_created():
-    logging.info("初始化中...")
     create_tables()
-    logging.info("初始化成功")
-
+sync_table_structure()
 checking()
+logging.info("初始化成功")
 
 # 创建后台调度器
 scheduler = BackgroundScheduler()

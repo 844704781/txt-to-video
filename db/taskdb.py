@@ -46,6 +46,49 @@ class Task(BaseModel):
     update_time = peewee.IntegerField(default=int(datetime.datetime.now().timestamp()))
 
 
+# 检查模型类与数据库表结构的差异，并更新数据库表
+def sync_table_structure():
+    try:
+        with database.atomic():
+            # 检查 Task 表是否存在，不存在则创建
+            if not Task.table_exists():
+                Task.create_table()
+                print("Table 'Task' created successfully.")
+
+            # 检查字段是否在表中存在，不存在则添加
+            fields_in_model = set(Task._meta.fields.keys())
+            columns_in_table = database.get_columns('Task')
+
+            column_names_in_table = [column.name for column in columns_in_table]
+
+            fields_to_add = fields_in_model - set(column_names_in_table)
+            for field_name in fields_to_add:
+                field = Task._meta.fields[field_name]
+
+                # 构造添加列的 SQL 语句并执行
+                query = f"ALTER TABLE Task ADD COLUMN {field.name} {get_column_definition(field)}"
+                database.execute_sql(query)
+
+                print(f"Field '{field.name}' added to table 'Task'.")
+
+            # 打印同步完成信息
+            print("Table 'Task' structure synchronized successfully.")
+    except peewee.OperationalError as e:
+        print(f"Error occurred while synchronizing table structure: {e}")
+
+
+# 获取字段的定义
+def get_column_definition(field):
+    if isinstance(field, peewee.CharField):
+        return "VARCHAR(255)"  # 假设最大长度为 255
+    elif isinstance(field, peewee.IntegerField):
+        return "INTEGER"
+    elif isinstance(field, peewee.TextField):
+        return "TEXT"
+    else:
+        raise ValueError(f"Unsupported field type: {type(field)}")
+
+
 class TaskMapper:
 
     @staticmethod

@@ -28,7 +28,7 @@ class PikaAbstractProcessor(AbstractProcessor):
         try:
             page.goto(self.LOGIN_PATH, wait_until="domcontentloaded")
         except Exception as e:
-            raise CustomException(ErrorCode.TIME_OUT, "无法连接" + host + "请检查网络")
+            raise CustomException(ErrorCode.TIME_OUT, "无法连接" + self.LOGIN_PATH + "请检查网络")
 
         btn = page.wait_for_selector('//main//button[3]')
         for num in range(1, 10):
@@ -101,12 +101,15 @@ class PikaAbstractProcessor(AbstractProcessor):
 
     def get_seconds(self, page):
         def extract_number(text):
+            if text =='Unlimited':
+                return 2147483647
             match = re.search(r'\d+', text)
             if match:
                 return int(match.group())
             else:
                 return 0
 
+        # TODO处理无次数限制情况
         p_tag = page.locator("xpath=//div[contains(@class,'bg-plan-credits')]/p")
 
         count = extract_number(p_tag.inner_text())
