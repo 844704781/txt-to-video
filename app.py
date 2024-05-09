@@ -17,8 +17,8 @@ import threading
 from entity.iconfig_parser import ConfigParser
 from video_builder import VideoBuilder
 import concurrent.futures
-import logging
-import logger_config
+from logger_config import logger
+
 from common.custom_exception import CustomException
 from entity.task_make_type import MakeType
 import os
@@ -32,9 +32,9 @@ runwayConnector = RunwayConnector()
 pikaConnector = PikaConnector()
 taskMapper = TaskMapper()
 
-scheduler_logger = logging.getLogger("apscheduler.executors.default")
+# scheduler_logger = logger.getLogger("apscheduler.executors.default")
 
-scheduler_logger.setLevel(logging.CRITICAL)
+# scheduler_logger.setLevel(logger.CRITICAL)
 
 config = configparser.ConfigParser()
 config.read('./config.ini')
@@ -87,7 +87,7 @@ def progress_callback(_task, _percent):
 
 # 跑任务
 def run_task(task):
-    logging.info(f"【{task.source}】Execute task start")
+    logger.info(f"【{task.source}】Execute task start")
     if task.source == Source.PIKA:
         username = config['PIKA']['username']
         password = config['PIKA']['password']
@@ -111,17 +111,17 @@ def run_task(task):
     try:
         video_url = processor.run()
     except CustomException as e:
-        logging.error(f"【{task.source}】Execute task end,error:{str(e)}")
+        logger.error(f"【{task.source}】Execute task end,error:{str(e)}")
         return ResultDo(e.code, e.message)
     except Exception as e:
         traceback.print_exc()
         return ResultDo(ErrorCode.TIME_OUT, 'Video generation timed out.')
-    logging.info(f"【{task.source}】Execute task end")
+    logger.info(f"【{task.source}】Execute task end")
     return ResultDo(code=ErrorCode.OK, data=video_url)
 
 
 def checking():
-    logging.info("checking...")
+    logger.info("checking...")
     tasks = taskMapper.get_doing_tasks()
     for task in tasks:
         # 下次重试
@@ -154,12 +154,12 @@ def download_image(url):
             # 保存图片到本地
             with open(filename, 'wb') as f:
                 f.write(response.content)
-            logging.debug(f"Image downloaded successfully: {filename}")
+            logger.debug(f"Image downloaded successfully: {filename}")
             return filename
         else:
-            logging.error(f"Failed to download image from {url}: HTTP status code {response.status_code}")
+            logger.error(f"Failed to download image from {url}: HTTP status code {response.status_code}")
     except Exception as e:
-        logging.error(f"Failed to download image from {url}: {e}")
+        logger.error(f"Failed to download image from {url}: {e}")
         raise CustomException(ErrorCode.TIME_OUT, str(e))
 
 
@@ -215,18 +215,18 @@ def execute_task():
 
     tasks = taskMapper.get_executable_tasks(10)
     if len(tasks) == 0:
-        logging.info('All tasks have been completed!!!')
+        logger.info('All tasks have been completed!!!')
     for _task in tasks:
         videoThreadPool.submit(execute_task_func, _task)
 
 
 def fetch(connector, source):
-    logging.info(f"【{source}】Get task")
+    logger.info(f"【{source}】Get task")
     tasks = connector.fetch(1)
     for task in tasks:
         task['source'] = source
     taskMapper.bulk_insert_tasks(tasks)
-    logging.info(f"【{source}】Save task success")
+    logger.info(f"【{source}】Save task success")
     # 执行爬取操作
     # 将爬取结果上传至对应接口
 
@@ -240,7 +240,7 @@ def fetch_pika():
 
 
 def _callback(connector, task):
-    logging.info(f"【{task.source}】Callback task")
+    logger.info(f"【{task.source}】Callback task")
     payload = {
         "task_id": task.task_id,
         "progress": task.progress,
@@ -259,13 +259,13 @@ def _callback(connector, task):
         taskMapper.update_server_message(str(e), task.task_id)
         return
     taskMapper.set_synced_by_task_id(task.task_id)
-    logging.info(f"【{task.source}】Callback task Success")
+    logger.info(f"【{task.source}】Callback task Success")
 
 
 def callback(connector, source):
     count = taskMapper.unsync_count(source)
     while count > 0:
-        logging.info(f"【{source}】UnSync task count :{count}")
+        logger.info(f"【{source}】UnSync task count :{count}")
         task = taskMapper.find_unsync_task_by_source(source)
         if task is None:
             return
@@ -297,18 +297,18 @@ def install_chromium():
 
 
 def main():
-    logging.info("初始化中...")
+    logger.info("初始化中...")
     # 在项目第一次启动时创建表
     if not is_table_created():
         create_tables()
     if not check_chromium_installed():
-        logging.info("初次使用,环境准备中")
+        logger.info("初次使用,环境准备中")
         install_chromium()
-        logging.info("准备完成")
+        logger.info("准备完成")
 
     sync_table_structure()
     checking()
-    logging.info("初始化成功")
+    logger.info("初始化成功")
 
     # 创建后台调度器
     scheduler = BackgroundScheduler()

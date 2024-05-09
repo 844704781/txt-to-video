@@ -5,8 +5,8 @@ import os
 from entity.video_const import VideoConst
 from typing import Optional, Callable
 
-import logging
-import logger_config
+from logger_config import logger
+
 
 
 class AbstractProcessor:
@@ -73,7 +73,7 @@ class AbstractProcessor:
         num_blocks = int(percent // 2)
         bar_length = 50
         progress = '|' + '■' * num_blocks + ' ' * (bar_length - num_blocks) + '|' + str(percent) + "%"
-        logging.info(f'{self.name} {progress}')
+        logger.info(f'{self.name} {progress}')
         if self.progress_callback is not None:
             self.progress_callback(percent)
 
@@ -100,10 +100,10 @@ class AbstractProcessor:
         if self.const in [VideoConst.PIKA_TXT, VideoConst.PIKA_MIX,
                           VideoConst.RUN_WAY_TXT, VideoConst.RUN_WAY_MIX]:
             if len(self.content) < 256:
-                logging.info(f"{self.name}当前提交提示词:\t{self.content}")
+                logger.info(f"{self.name}当前提交提示词:\t{self.content}")
         if self.const in [VideoConst.PIKA_IMG, VideoConst.PIKA_MIX, VideoConst.RUN_WAY_IMG, VideoConst.RUN_WAY_MIX]:
             if 0 < len(self.image) < 256:
-                logging.info(f"{self.name}当前提交图片:\t{self.image}")
+                logger.info(f"{self.name}当前提交图片:\t{self.image}")
 
         # 使用 Playwright 执行操作
         with sync_playwright() as p:
@@ -112,7 +112,7 @@ class AbstractProcessor:
             try:
                 browser = p.chromium.launch(headless=True)
 
-                logging.info(self.name + "准备中...")
+                logger.info(self.name + "准备中...")
                 page = browser.new_page()
 
                 # 设置额外的 HTTP 请求头，禁止加载图片，加快请求速度
@@ -124,17 +124,17 @@ class AbstractProcessor:
                         route.continue_()
 
                 page.route("**/*", abort_img)
-                # logging.info(self.name + "登录中...")
+                # logger.info(self.name + "登录中...")
                 self.login(page)
-                # logging.info(self.name + "登录成功")
-                logging.info(self.name + "正在写入内容...")
+                # logger.info(self.name + "登录成功")
+                logger.info(self.name + "正在写入内容...")
                 self.write(page)
 
                 self.commit(page)
-                logging.info(self.name + "提交内容,视频生成中...")
+                logger.info(self.name + "提交内容,视频生成中...")
                 href = self.loading(page)
 
-                logging.info(self.name + "url:\t%s", href)
+                logger.info(self.name + "url:\t%s", href)
             except Exception as e:
                 raise e
             finally:

@@ -1,6 +1,6 @@
 from processor.pika_abstract_processor import PikaAbstractProcessor
-import logging
-import logger_config
+from logger_config import logger
+
 
 class PikaImgProcessor(PikaAbstractProcessor):
 
@@ -12,8 +12,8 @@ class PikaImgProcessor(PikaAbstractProcessor):
             explor_page.click()
 
         seconds = self.get_seconds(page)
-        logging.info(self.name + "当前余额:%s", seconds)
-        logging.info(self.name + "开始提交图片")
+        logger.info(self.name + "当前余额:%s", seconds)
+        logger.info(self.name + "开始提交图片")
         file_path = self.image
         page.locator("xpath=//input[@id='file-input']").set_input_files(file_path)
         pass

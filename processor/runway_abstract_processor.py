@@ -7,8 +7,8 @@ from abc import abstractmethod
 import re
 from entity.error_code import ErrorCode
 from entity.result_utils import ResultDo
-import logging
-import logger_config
+from logger_config import logger
+
 from common.custom_exception import CustomException
 from entity.error_code import ErrorCode
 
@@ -24,9 +24,9 @@ class RunWayAbstractParser(AbstractProcessor):
         self.LOGIN_PATH = host + '/login'
         self.GEN_PATH = host + '/video-tools/teams/v2v2/ai-tools/gen-2'
 
-        logging.info(self.name + "checking ->" + host)
+        logger.info(self.name + "checking ->" + host)
         check_result = net_tools.check_website_availability(host)
-        logging.info(self.name + "result ->" + str(check_result))
+        logger.info(self.name + "result ->" + str(check_result))
         if not check_result:
             raise CustomException(ErrorCode.TIME_OUT, "无法连接" + host + "请检查网络")
 
@@ -93,7 +93,7 @@ class RunWayAbstractParser(AbstractProcessor):
             percent = percent if count == 0 else 100
             self.print_progress(percent)
             if count > 0:
-                logging.info("\n" + self.name + "视频生成成功")
+                logger.info("\n" + self.name + "视频生成成功")
                 src_attribute = video_element.evaluate('''element => element.getAttribute('src')''')
                 break
             else:

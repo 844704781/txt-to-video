@@ -8,8 +8,8 @@ from entity.error_code import ErrorCode
 from entity.result_utils import ResultDo
 from common.custom_exception import CustomException
 
-import logging
-import logger_config
+from logger_config import logger
+
 
 
 class PikaAbstractProcessor(AbstractProcessor):
@@ -18,9 +18,9 @@ class PikaAbstractProcessor(AbstractProcessor):
         super().__init__(username, password, name, task_id)
         host = 'https://pika.art'
         self.LOGIN_PATH = host + '/login'
-        logging.info(self.name + "checking ->" + host)
+        logger.info(self.name + "checking ->" + host)
         check_result = net_tools.check_website_availability(host)
-        logging.info(self.name + "result ->" + str(check_result))
+        logger.info(self.name + "result ->" + str(check_result))
         if not check_result:
             raise CustomException(ErrorCode.TIME_OUT, "无法连接" + host + "请检查网络")
 
@@ -82,13 +82,13 @@ class PikaAbstractProcessor(AbstractProcessor):
 
             if dasharray is None:
 
-                logging.info("\n" + self.name + "视频生成成功")
+                logger.info("\n" + self.name + "视频生成成功")
                 video = page.locator(
                     "xpath=//main//div[contains(@class,'group/card')][1]//div[@class='relative']//video/source")
                 try:
                     link = video.get_attribute('src')
                 except Exception as e:
-                    logging.error(self.name + "Something went wrong while generating this video")
+                    logger.error(self.name + "Something went wrong while generating this video")
                     link = None
                 break
             else:

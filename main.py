@@ -6,8 +6,8 @@ from entity.video_const import VideoConst
 from playwright.sync_api import sync_playwright
 import subprocess
 import os
-import logging
-import logger_config
+from logger_config import logger
+
 
 
 def check_chromium_installed():
@@ -27,9 +27,9 @@ def install_chromium():
 
 def main():
     if not check_chromium_installed():
-        logging.info("初次使用,环境准备中")
+        logger.info("初次使用,环境准备中")
         install_chromium()
-        logging.info("准备完成")
+        logger.info("准备完成")
 
     config = configparser.ConfigParser()
     config.read('./config.ini')

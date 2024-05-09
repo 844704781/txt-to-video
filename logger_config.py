@@ -1,30 +1,22 @@
-import os
-import logging
-from logging.handlers import RotatingFileHandler
 import sys
 
-# 获取当前项目根目录
-PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-LOG_DIR = os.path.join(PROJECT_ROOT, 'logs')
+from loguru import logger
 
-# 如果日志目录不存在，则创建
-if not os.path.exists(LOG_DIR):
-    os.makedirs(LOG_DIR)
+folder_ = "./logs/"
+rotation_ = "100 MB"
+retention_ = "30 days"
+encoding_ = "utf-8"
+backtrace_ = True
+diagnose_ = True
 
-# 创建日志记录器
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+# 格式里面添加了process和thread记录，方便查看多进程和线程程序
+format_ = '<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> ' \
+          '| <magenta>{process}</magenta>:<yellow>{thread}</yellow> ' \
+          '| <cyan>{name}</cyan>:<cyan>{function}</cyan>:<yellow>{line}</yellow> - <level>{message}</level>'
 
-# 创建按大小轮转的日志处理程序
-rotating_handler = RotatingFileHandler(os.path.join(LOG_DIR, 'all.log'), maxBytes=10 * 1024 * 1024, backupCount=5)
-rotating_handler.setLevel(logging.DEBUG)
-rotating_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - Thread %(thread)d - %(message)s'))
-
-# 创建控制台处理程序
-console_handler = logging.StreamHandler(sys.stdout)
-console_handler.setLevel(logging.DEBUG)
-console_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - Thread %(thread)d - %(message)s'))
-
-# 将处理程序添加到日志记录器
-logger.addHandler(rotating_handler)
-logger.addHandler(console_handler)
+# 这里面采用了层次式的日志记录方式，就是低级日志文件会记录比他高的所有级别日志，这样可以做到低等级日志最丰富，高级别日志更少更关键
+# debug
+logger.add(folder_ + "all.log", level="DEBUG", backtrace=backtrace_, diagnose=diagnose_,
+           format=format_, colorize=False,
+           rotation=rotation_, retention=retention_, encoding=encoding_,
+           filter=lambda record: record["level"].no >= logger.level("DEBUG").no)

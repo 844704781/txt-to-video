@@ -4,8 +4,8 @@ from playhouse.pool import PooledSqliteDatabase
 from entity.task_status import Status
 from entity.task_make_type import MakeType
 import os
-import logging
-import logger_config
+from logger_config import logger
+
 
 current_dir = os.path.dirname(__file__)
 project_root = os.path.abspath(os.path.join(current_dir, ".."))
@@ -173,7 +173,7 @@ class TaskMapper:
                 task.message = message
             task.save()
         except Task.DoesNotExist:
-            logging.info(f"Task with ID {task_id} not found or already in SUCCESS status.")
+            logger.info(f"Task with ID {task_id} not found or already in SUCCESS status.")
 
     # 设置失败状态
     @staticmethod
@@ -187,7 +187,7 @@ class TaskMapper:
             task.message = message
             task.save()
         except Task.DoesNotExist:
-            logging.info(f"Task with ID {task_id} not found or already in SUCCESS status.")
+            logger.info(f"Task with ID {task_id} not found or already in SUCCESS status.")
 
     @staticmethod
     def set_success(task_id, video_url):
@@ -197,7 +197,7 @@ class TaskMapper:
             task.video_url = video_url
             task.save()
         except Task.DoesNotExist:
-            logging.info(f"Task with ID {task_id} not found or already in SUCCESS status.")
+            logger.info(f"Task with ID {task_id} not found or already in SUCCESS status.")
 
     @staticmethod
     def set_progress(progress, task_id):
@@ -207,7 +207,7 @@ class TaskMapper:
             task.status = Status.DOING
             task.save()
         except Task.DoesNotExist:
-            logging.info(f"Task with ID {task_id} not found or already in SUCCESS status.")
+            logger.info(f"Task with ID {task_id} not found or already in SUCCESS status.")
 
     @staticmethod
     def update_server_message(message, task_id):
@@ -218,7 +218,7 @@ class TaskMapper:
             task.server_message = message
             task.save()
         except Task.DoesNotExist:
-            logging.info(f"Task with ID {task_id} not found or already in SUCCESS status.")
+            logger.info(f"Task with ID {task_id} not found or already in SUCCESS status.")
 
     @staticmethod
     def get(task_id):
@@ -244,7 +244,7 @@ class TaskMapper:
             task.image_path = image_path
             task.save()
         except Task.DoesNotExist:
-            logging.info(f"Task with ID {task_id} not found or already in SUCCESS status.")
+            logger.info(f"Task with ID {task_id} not found or already in SUCCESS status.")
 
 
 # 创建表
