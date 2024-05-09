@@ -3,9 +3,34 @@ import argparse
 from entity.iconfig_parser import ConfigParser
 from video_builder import VideoBuilder
 from entity.video_const import VideoConst
+from playwright.sync_api import sync_playwright
+import subprocess
+import os
+import logging
+import logger_config
+
+
+def check_chromium_installed():
+    with sync_playwright() as p:
+        # 获取 Chromium 的可执行文件路径
+        chromium_path = p.chromium.executable_path
+
+        if os.path.exists(chromium_path):
+            return True
+        else:
+            return False
+
+
+def install_chromium():
+    subprocess.run(["playwright", "install", "chromium"])
 
 
 def main():
+    if not check_chromium_installed():
+        logging.info("初次使用,环境准备中")
+        install_chromium()
+        logging.info("准备完成")
+
     config = configparser.ConfigParser()
     config.read('./config.ini')
 

@@ -96,34 +96,7 @@ class AbstractProcessor:
         """
         pass
 
-    @staticmethod
-    def check_chromium_installed():
-        """
-        检查是否已安装 Chromium 浏览器
-        :return:
-        """
-        with sync_playwright() as p:
-            # 获取 Chromium 的可执行文件路径
-            chromium_path = p.chromium.executable_path
-
-            if os.path.exists(chromium_path):
-                return True
-            else:
-                return False
-
-    @staticmethod
-    def install_chromium():
-        """
-        安装 Chromium 浏览器
-        :return:
-        """
-        subprocess.run(["playwright", "install", "chromium"])
-
     def run(self):
-        if not self.check_chromium_installed():
-            logging.info("初次使用,环境准备中")
-            self.install_chromium()
-            logging.info("准备完成")
         if self.const in [VideoConst.PIKA_TXT, VideoConst.PIKA_MIX,
                           VideoConst.RUN_WAY_TXT, VideoConst.RUN_WAY_MIX]:
             if len(self.content) < 256:

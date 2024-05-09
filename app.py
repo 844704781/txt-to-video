@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import sys
 import time
+from playwright.sync_api import sync_playwright
 import traceback
 from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -280,11 +281,31 @@ def callback_pika():
     callback(pikaConnector, Source.PIKA)
 
 
+def check_chromium_installed():
+    with sync_playwright() as p:
+        # 获取 Chromium 的可执行文件路径
+        chromium_path = p.chromium.executable_path
+
+        if os.path.exists(chromium_path):
+            return True
+        else:
+            return False
+
+
+def install_chromium():
+    subprocess.run(["playwright", "install", "chromium"])
+
+
 def main():
     logging.info("初始化中...")
     # 在项目第一次启动时创建表
     if not is_table_created():
         create_tables()
+    if not check_chromium_installed():
+        logging.info("初次使用,环境准备中")
+        install_chromium()
+        logging.info("准备完成")
+
     sync_table_structure()
     checking()
     logging.info("初始化成功")
