@@ -14,8 +14,8 @@ import logger_config
 
 class PikaAbstractProcessor(AbstractProcessor):
 
-    def __init__(self, username, password, name):
-        super().__init__(username, password, name)
+    def __init__(self, username, password, name, task_id: str = None):
+        super().__init__(username, password, name, task_id)
         host = 'https://pika.art'
         self.LOGIN_PATH = host + '/login'
         logging.info(self.name + "checking ->" + host)
@@ -46,7 +46,7 @@ class PikaAbstractProcessor(AbstractProcessor):
         login_btn.click()
         faq = page.locator("xpath=//main//a[@href='/faq']").get_attribute('href')
         if faq is None:
-            time.sleep(1000)
+            time.sleep(60)
 
     @abstractmethod
     def write(self, page):

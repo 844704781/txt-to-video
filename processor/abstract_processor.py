@@ -10,12 +10,15 @@ import logger_config
 
 
 class AbstractProcessor:
-    def __init__(self, username, password, name):
+    def __init__(self, username, password, name, task_id: str = None):
         self.username = username
         self.password = password
         self.content = None
         self.image = None
         self.name = f'【{name}】'
+        if task_id is not None:
+            self.name = self.name + f'（{task_id}）'
+        self.task_id = task_id
         self.const = name
         self.progress_callback = None
 
@@ -69,8 +72,8 @@ class AbstractProcessor:
         """
         num_blocks = int(percent // 2)
         bar_length = 50
-        progress = '\r|' + '■' * num_blocks + ' ' * (bar_length - num_blocks) + '|' + str(percent) + "%"
-        logging.info(f'{progress}', end='', flush=True)
+        progress = '|' + '■' * num_blocks + ' ' * (bar_length - num_blocks) + '|' + str(percent) + "%"
+        logging.info(f'{self.name} {progress}')
         if self.progress_callback is not None:
             self.progress_callback(percent)
 
@@ -134,9 +137,20 @@ class AbstractProcessor:
             browser = None
             href = None
             try:
-                browser = p.chromium.launch(headless=False)
+                browser = p.chromium.launch(headless=True)
+
                 logging.info(self.name + "准备中...")
                 page = browser.new_page()
+
+                # 设置额外的 HTTP 请求头，禁止加载图片，加快请求速度
+                def abort_img(route):
+                    # 资源类型  "stylesheet", "script", "image", "font", "xhr"
+                    if route.request.resource_type in ["image"]:
+                        route.abort()
+                    else:
+                        route.continue_()
+
+                page.route("**/*", abort_img)
                 # logging.info(self.name + "登录中...")
                 self.login(page)
                 # logging.info(self.name + "登录成功")
@@ -148,6 +162,8 @@ class AbstractProcessor:
                 href = self.loading(page)
 
                 logging.info(self.name + "url:\t%s", href)
+            except Exception as e:
+                raise e
             finally:
                 browser.close()
             return href

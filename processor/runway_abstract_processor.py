@@ -18,8 +18,8 @@ class RunWayAbstractParser(AbstractProcessor):
         处理runway公共方法
     """
 
-    def __init__(self, username, password, name):
-        super().__init__(username, password, name)
+    def __init__(self, username, password, name, task_id: str = None):
+        super().__init__(username, password, name, task_id)
         host = 'https://app.runwayml.com'
         self.LOGIN_PATH = host + '/login'
         self.GEN_PATH = host + '/video-tools/teams/v2v2/ai-tools/gen-2'

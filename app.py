@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import sys
 import time
 import traceback
 from datetime import datetime
@@ -23,6 +24,8 @@ import os
 import requests
 import random
 import string
+import argparse
+import subprocess
 
 runwayConnector = RunwayConnector()
 pikaConnector = PikaConnector()
@@ -35,8 +38,19 @@ scheduler_logger.setLevel(logging.CRITICAL)
 config = configparser.ConfigParser()
 config.read('./config.ini')
 
-progressThreadPool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
-videoThreadPool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+callback_thread_count = 1
+video_processor_thread_count = 1
+
+if config['SERVICE'] is not None:
+    if (config['SERVICE']['callback_max_thread_count'] is not None
+            or len(config['SERVICE']['callback_max_thread_count'] is not None) != 0):
+        callback_thread_count = int(config['SERVICE']['callback_max_thread_count']
+                                    or len(config['SERVICE']['callback_max_thread_count']) != 0)
+    if config['SERVICE']['video_processor_count'] is not None:
+        video_processor_thread_count = int(config['SERVICE']['video_processor_count'])
+
+callbackThreadPool = concurrent.futures.ThreadPoolExecutor(max_workers=callback_thread_count)
+videoThreadPool = concurrent.futures.ThreadPoolExecutor(max_workers=video_processor_thread_count)
 
 project_root = os.path.dirname(os.path.abspath(__file__))
 
@@ -67,7 +81,7 @@ def progress_callback(_task, _percent):
         taskMapper.set_progress(percent, task.task_id)
         _callback(get_connector(task.source), task)
 
-    progressThreadPool.submit(callback_func, _task, _percent)
+    callbackThreadPool.submit(callback_func, _task, _percent)
 
 
 # 跑任务
@@ -89,6 +103,7 @@ def run_task(task):
         .set_config(i_config) \
         .set_form(task.prompt, task.image_path) \
         .set_processor(service) \
+        .set_task_id(task.task_id) \
         .progress_callback(lambda percent: progress_callback(task, percent)) \
         .build()
 
@@ -99,7 +114,7 @@ def run_task(task):
         return ResultDo(e.code, e.message)
     except Exception as e:
         traceback.print_exc()
-        return ResultDo(ErrorCode.UNKNOWN, str(e))
+        return ResultDo(ErrorCode.TIME_OUT, 'Video generation timed out.')
     logging.info(f"【{task.source}】Execute task end")
     return ResultDo(code=ErrorCode.OK, data=video_url)
 
@@ -265,23 +280,28 @@ def callback_pika():
     callback(pikaConnector, Source.PIKA)
 
 
-logging.info("初始化中...")
-# 在项目第一次启动时创建表
-if not is_table_created():
-    create_tables()
-sync_table_structure()
-checking()
-logging.info("初始化成功")
+def main():
+    logging.info("初始化中...")
+    # 在项目第一次启动时创建表
+    if not is_table_created():
+        create_tables()
+    sync_table_structure()
+    checking()
+    logging.info("初始化成功")
 
-# 创建后台调度器
-scheduler = BackgroundScheduler()
-scheduler.add_job(fetch_runway, 'interval', seconds=10 * 60, next_run_time=datetime.now())
-scheduler.add_job(fetch_pika, 'interval', seconds=10 * 60, next_run_time=datetime.now())
+    # 创建后台调度器
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(fetch_runway, 'interval', seconds=10 * 60, next_run_time=datetime.now())
+    scheduler.add_job(fetch_pika, 'interval', seconds=10 * 60, next_run_time=datetime.now())
 
-scheduler.add_job(callback_runway, 'interval', seconds=10)
-scheduler.add_job(execute_task, 'interval', seconds=60, next_run_time=datetime.now())
-scheduler.start()
+    scheduler.add_job(callback_runway, 'interval', seconds=10)
+    scheduler.add_job(execute_task, 'interval', seconds=60, next_run_time=datetime.now())
+    scheduler.start()
 
-event = threading.Event()
+    event = threading.Event()
 
-event.wait()
+    event.wait()
+
+
+if __name__ == "__main__":
+    main()
