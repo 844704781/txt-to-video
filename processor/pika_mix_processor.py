@@ -4,13 +4,17 @@ from processor.pika_abstract_processor import PikaAbstractProcessor
 
 import logging
 import logger_config
+from common.custom_exception import CustomException
+from entity.error_code import ErrorCode
+
+
 class PikaMixProcessor(PikaAbstractProcessor):
 
     def write(self, page):
         if self.image is None:
-            raise Exception("Empty image")
+            raise CustomException(ErrorCode.INVALID_ARG, 'Empty image')
         if self.content is None:
-            raise Exception("Empty content")
+            raise CustomException(ErrorCode.INVALID_ARG, "Empty content")
 
         for num in range(1, 10):
             page.mouse.click(10, 10)

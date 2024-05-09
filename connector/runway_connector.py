@@ -1,6 +1,8 @@
 from connector.base_connector import BaseConnector
 from entity.result_utils import ResultDo
 from entity.task_status import Status
+from common.custom_exception import CustomException
+from entity.error_code import ErrorCode
 
 
 class RunwayConnector(BaseConnector):
@@ -25,7 +27,7 @@ class RunwayConnector(BaseConnector):
         }
         resp = self.post(uri, payload)
         if resp.get('code') != 0:
-            raise Exception(ResultDo(resp.get('code'), resp.get('message')))
+            raise CustomException(resp.get('code'), resp.get('message'))
         return resp.get('data')
 
     def callback(self, payload: dict):
@@ -47,7 +49,7 @@ class RunwayConnector(BaseConnector):
         uri = '/openapi/job/runway/callback'
         resp = self.post(uri, payload)
         if resp.get('code') != 0:
-            raise Exception(ResultDo(resp.get('code'), resp.get('message')))
+            raise CustomException(resp.get('code'), resp.get('message'))
         return resp.get('data')
 
 

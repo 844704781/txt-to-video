@@ -1,6 +1,7 @@
 from connector.base_connector import BaseConnector
 from entity.result_utils import ResultDo
 from entity.task_status import Status
+from common.custom_exception import CustomException
 
 class PikaConnector(BaseConnector):
     def fetch(self, _num):
@@ -23,7 +24,7 @@ class PikaConnector(BaseConnector):
         }
         resp = self.post(uri, payload)
         if resp.get('code') != 0:
-            raise Exception(ResultDo(resp.get('code'), resp.get('message')))
+            raise CustomException(resp.get('code'), resp.get('message'))
         return resp.get('data')
 
     def callback(self, payload: dict):
@@ -46,7 +47,7 @@ class PikaConnector(BaseConnector):
 
         resp = self.post(uri, payload)
         if resp.get('code') != 0:
-            raise Exception(ResultDo(resp.get('code'), resp.get('message')))
+            raise CustomException(resp.get('code'), resp.get('message'))
         return resp.get('data')
 
 

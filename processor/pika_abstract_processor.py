@@ -6,9 +6,11 @@ from processor.abstract_processor import AbstractProcessor
 import net_tools
 from entity.error_code import ErrorCode
 from entity.result_utils import ResultDo
+from common.custom_exception import CustomException
 
 import logging
 import logger_config
+
 
 class PikaAbstractProcessor(AbstractProcessor):
 
@@ -20,13 +22,13 @@ class PikaAbstractProcessor(AbstractProcessor):
         check_result = net_tools.check_website_availability(host)
         logging.info(self.name + "result ->" + str(check_result))
         if not check_result:
-            raise Exception("无法连接" + host + "请检查网络")
+            raise CustomException(ErrorCode.TIME_OUT, "无法连接" + host + "请检查网络")
 
     def login(self, page):
         try:
             page.goto(self.LOGIN_PATH, wait_until="domcontentloaded")
         except Exception as e:
-            raise e
+            raise CustomException(ErrorCode.TIME_OUT, "无法连接" + host + "请检查网络")
 
         btn = page.wait_for_selector('//main//button[3]')
         for num in range(1, 10):
@@ -109,5 +111,5 @@ class PikaAbstractProcessor(AbstractProcessor):
 
         count = extract_number(p_tag.inner_text())
         if count < 10:
-            raise Exception(ResultDo(ErrorCode.INSUFFICIENT_BALANCE, f"当前余额:{count},余额不足,请充值"))
+            raise CustomException(ErrorCode.INSUFFICIENT_BALANCE, f"当前余额:{count},余额不足,请充值")
         return count

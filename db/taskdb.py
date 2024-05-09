@@ -6,6 +6,7 @@ from entity.task_make_type import MakeType
 import os
 import logging
 import logger_config
+
 current_dir = os.path.dirname(__file__)
 project_root = os.path.abspath(os.path.join(current_dir, ".."))
 
@@ -33,10 +34,12 @@ class Task(BaseModel):
                                  default=MakeType.TEXT)
     prompt = peewee.TextField(null=True)
     image_url = peewee.TextField(null=True)
+    image_path = peewee.TextField(null=True)
     progress = peewee.IntegerField(default=0)
     status = peewee.IntegerField(choices=[(status.value, status.name) for status in Status], default=Status.CREATED)
     status_is_sync = peewee.IntegerField(default=1)  # 状态是否与服务器同步 0:未同步 1:已同步
     message = peewee.TextField(null=True)
+    err_code = peewee.IntegerField(default=0)
     server_message = peewee.TextField(null=True)
     video_url = peewee.TextField(null=True)
     create_time = peewee.IntegerField(default=int(datetime.datetime.now().timestamp()))
@@ -129,6 +132,20 @@ class TaskMapper:
         except Task.DoesNotExist:
             logging.info(f"Task with ID {task_id} not found or already in SUCCESS status.")
 
+    # 设置失败状态
+    @staticmethod
+    def set_fail(task_id, err_code, message: str = None):
+
+        try:
+            task = Task.select().where((Task.task_id == task_id) & (Task.status != Status.SUCCESS)).first()
+            task.status = Status.FAIL.value
+            task.err_code = err_code
+            task.status_is_sync = 0
+            task.message = message
+            task.save()
+        except Task.DoesNotExist:
+            logging.info(f"Task with ID {task_id} not found or already in SUCCESS status.")
+
     @staticmethod
     def set_success(task_id, video_url):
         try:
@@ -174,6 +191,17 @@ class TaskMapper:
         :return: 当前正在执行的任务列表
         """
         return Task.select().where(Task.status == Status.DOING)
+
+    @staticmethod
+    def update_image_path(image_path, task_id):
+        if image_path is None:
+            return
+        try:
+            task = Task.select().where((Task.task_id == task_id) & (Task.status != Status.SUCCESS)).first()
+            task.image_path = image_path
+            task.save()
+        except Task.DoesNotExist:
+            logging.info(f"Task with ID {task_id} not found or already in SUCCESS status.")
 
 
 # 创建表

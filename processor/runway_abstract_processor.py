@@ -7,6 +7,10 @@ from entity.error_code import ErrorCode
 from entity.result_utils import ResultDo
 import logging
 import logger_config
+from common.custom_exception import CustomException
+from entity.error_code import ErrorCode
+
+
 class RunWayAbstractParser(AbstractProcessor):
     """
         处理runway公共方法
@@ -22,13 +26,13 @@ class RunWayAbstractParser(AbstractProcessor):
         check_result = net_tools.check_website_availability(host)
         logging.info(self.name + "result ->" + str(check_result))
         if not check_result:
-            raise Exception("无法连接" + host + "请检查网络")
+            raise CustomException(ErrorCode.TIME_OUT, "无法连接" + host + "请检查网络")
 
     def login(self, page):
         try:
             page.goto(self.LOGIN_PATH, wait_until="domcontentloaded")
         except Exception as e:
-            raise e
+            raise CustomException(ErrorCode.TIME_OUT,"获取数据超时，稍后重试")
         # 输入账号
         username_input = page.locator('input[name="usernameOrEmail"]')
         username_input.fill(self.username)
@@ -57,7 +61,7 @@ class RunWayAbstractParser(AbstractProcessor):
         count_text = p_tag.inner_text()
         count = extract_number(count_text)
         if count < 10:
-            raise Exception(ResultDo(ErrorCode.INSUFFICIENT_BALANCE, f"当前余额:{count},余额不足,请充值"))
+            raise CustomException(ErrorCode.INSUFFICIENT_BALANCE, f"当前余额:{count},余额不足,请充值")
         return count
 
     def loading(self, page):

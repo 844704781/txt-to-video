@@ -7,6 +7,7 @@ from entity.result_utils import ResultDo
 import os
 import logging
 import logger_config
+from common.custom_exception import CustomException
 '''
 针对下面服务器接口的基类
 https://ct4.dianbaobao.com
@@ -72,6 +73,6 @@ class BaseConnector:
         logging.debug("请求响应:%s", data)
         logging.debug("-" * 50)
         if response.status_code != 200:
-            raise Exception(ResultDo(ErrorCode.ERR_DIAN_BAOBAO, "服务器错误:" + data))
+            raise CustomException(ErrorCode.ERR_DIAN_BAOBAO, "服务器错误:" + data)
         data = response.json()
         return data

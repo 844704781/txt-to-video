@@ -17,6 +17,12 @@ from video_builder import VideoBuilder
 import concurrent.futures
 import logging
 import logger_config
+from common.custom_exception import CustomException
+from entity.task_make_type import MakeType
+import os
+import requests
+import random
+import string
 
 runwayConnector = RunwayConnector()
 pikaConnector = PikaConnector()
@@ -32,6 +38,8 @@ config.read('./config.ini')
 progressThreadPool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 videoThreadPool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
+project_root = os.path.dirname(os.path.abspath(__file__))
+
 
 # 获取请求连接
 def get_connector(source):
@@ -40,7 +48,7 @@ def get_connector(source):
     elif source == Source.RUN_WAY:
         connector = runwayConnector
     else:
-        raise Exception(ResultDo(ErrorCode.UNSUPPORTED, f'Unsupported source:{source}'))
+        raise CustomException(ErrorCode.UNSUPPORTED, f'Unsupported source:{source}')
     return connector
 
 
@@ -50,8 +58,8 @@ def progress_callback(_task, _percent):
         percent = int(percent)
         task.progress = percent
         task.status = Status.DOING.value
-        # TODO 查找原数据,如果一样则不回调
-        # TODO 异步发送
+        #  查找原数据,如果一样则不回调
+        #  异步发送
         task = taskMapper.get(task.task_id)
         if task.progress == percent:
             return
@@ -72,31 +80,26 @@ def run_task(task):
         username = config['RUNWAY']['username']
         password = config['RUNWAY']['password']
     else:
-        raise Exception(ResultDo(ErrorCode.UNSUPPORTED, f'Unsupported source {task.source}'))
+        raise CustomException(ErrorCode.UNSUPPORTED, f'Unsupported source {task.source}')
 
     i_config = ConfigParser(username, password)
     service = transfer(task.source, task.make_type)
 
     processor = VideoBuilder.create() \
         .set_config(i_config) \
-        .set_form(task.prompt, task.image_url) \
+        .set_form(task.prompt, task.image_path) \
         .set_processor(service) \
         .progress_callback(lambda percent: progress_callback(task, percent)) \
         .build()
 
     try:
         video_url = processor.run()
+    except CustomException as e:
+        logging.error(f"【{task.source}】Execute task end,error:{str(e)}")
+        return ResultDo(e.code, e.message)
     except Exception as e:
-        message = None
-        if len(e.args) == 0:
-            traceback.print_exc()
-            message = str(e)
-        else:
-            if e.args[0].message is not None:
-                message = e.args[0].message
-        logging.error(f"【{task.source}】Execute task end,error:{message}")
-        return ResultDo(ErrorCode.ERR_BROWSER, message=message)
-
+        traceback.print_exc()
+        return ResultDo(ErrorCode.UNKNOWN, str(e))
     logging.info(f"【{task.source}】Execute task end")
     return ResultDo(code=ErrorCode.OK, data=video_url)
 
@@ -109,11 +112,63 @@ def checking():
         taskMapper.set_status(task.task_id, Status.FAIL)
 
 
+# 下载图片
+def download_image(url):
+    # TODO test...
+    def generate_random_filename(length):
+        """生成指定长度的随机文件名"""
+        return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+
+    images_dir = os.path.join(project_root, 'images')
+    if not os.path.exists(images_dir):
+        os.makedirs(images_dir)
+
+    # 发送 GET 请求获取图片
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            # 从 URL 中获取图片格式
+            content_type = response.headers.get('content-type')
+            image_extension = content_type.split('/')[-1]
+
+            # 生成随机文件名
+            random_filename = generate_random_filename(64)
+            filename = os.path.join(images_dir, f"{random_filename}.{image_extension}")
+
+            # 保存图片到本地
+            with open(filename, 'wb') as f:
+                f.write(response.content)
+            logging.debug(f"Image downloaded successfully: {filename}")
+            return filename
+        else:
+            logging.error(f"Failed to download image from {url}: HTTP status code {response.status_code}")
+    except Exception as e:
+        logging.error(f"Failed to download image from {url}: {e}")
+        raise CustomException(ErrorCode.TIME_OUT, str(e))
+
+
 # 执行任务
 def execute_task():
     def execute_task_func(task):
-        try:
 
+        try:
+            # 处理图片,如果图片未下载，则将其下载直本地
+            if task.image_path is None or len(task.image_path) == 0 \
+                    or not os.path.exists(task.image_path):
+
+                if task.make_type in [MakeType.IMAGE, MakeType.MIX]:
+                    image_path = download_image(task.make_type, task.image_url)
+                    task.image_path = image_path
+                    taskMapper.update_image_path(image_path, task.task_id)
+        except CustomException as e:
+            taskMapper.set_fail(task.task_id, e.code, e.message)
+            return
+        except Exception as e:
+            traceback.print_exception()
+            taskMapper.set_fail(task.task_id, ErrorCode.UNKNOWN, str(e))
+            return
+
+        try:
             # 将任务设置成执行中
             task.status = Status.DOING.value
             taskMapper.set_status(task.task_id, task.status)
@@ -132,8 +187,12 @@ def execute_task():
                 # 失败
                 task.status = Status.FAIL.value
                 task.message = execute_result.message
+                task.err_code = execute_result.code
+                taskMapper.set_fail(task.task_id, execute_result.code, execute_result.message)
                 taskMapper.set_status(task.task_id, Status.FAIL, execute_result.message)
                 _callback(get_connector(task.source), task)
+        except CustomException as e:
+            raise e
         except Exception as e:
             traceback.print_exc()
             raise e
@@ -166,28 +225,22 @@ def fetch_pika():
 
 def _callback(connector, task):
     logging.info(f"【{task.source}】Callback task")
-    errcode = 0
-    errmsg = None
     payload = {
         "task_id": task.task_id,
         "progress": task.progress,
         "status": task.status,
-        "errcode": errcode,
-        "errmsg": errmsg,
+        "errcode": task.err_code,
+        "errmsg": task.message,
         "video_url": task.video_url
     }
     try:
         connector.callback(payload)
+    except CustomException as e:
+        taskMapper.update_server_message(e.message, task.task_id)
+        return
     except Exception as e:
-        message = None
-        if len(e.args) == 0:
-            traceback.print_exc()
-            message = str(e)
-        else:
-            if e.args[0].message is not None:
-                message = str(e.args[0].message)
-        logging.info(f"【{task.source}】Callback task Fail,message:%s", message)
-        taskMapper.update_server_message(message, task.task_id)
+        traceback.print_exc()
+        taskMapper.update_server_message(str(e), task.task_id)
         return
     taskMapper.set_synced_by_task_id(task.task_id)
     logging.info(f"【{task.source}】Callback task Success")
