@@ -55,7 +55,7 @@ class BaseConnector:
     def post(self, uri, payload):
         logger.debug("-" * 50)
         url = self.__base_url + uri
-        logger.debug("请求地址:%s", url)
+        logger.debug("请求地址:{}", url)
         timestamp = str(int(time.time()))
         p = self.__private_key
         signature = self.__generate_md5_signature(timestamp, payload, p)
@@ -66,11 +66,11 @@ class BaseConnector:
             "x-pid": self.__partner_id,
             "x-sign": signature
         }
-        logger.debug("请求header:%s", headers)
-        logger.debug("请求参数:%s", payload)
+        logger.debug("请求header:{}", headers)
+        logger.debug("请求参数:{}", payload)
         response = requests.post(url, headers=headers, json=payload)
         data = response.text
-        logger.debug("请求响应:%s", data)
+        logger.debug("请求响应:{}", data)
         logger.debug("-" * 50)
         if response.status_code != 200:
             raise CustomException(ErrorCode.ERR_DIAN_BAOBAO, "服务器错误:" + data)

@@ -134,7 +134,7 @@ class AbstractProcessor:
                 logger.info(self.name + "提交内容,视频生成中...")
                 href = self.loading(page)
 
-                logger.info(self.name + "url:\t%s", href)
+                logger.info(self.name + "url:\t{}", href)
             except Exception as e:
                 raise e
             finally:

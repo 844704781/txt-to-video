@@ -5,4 +5,4 @@ class CustomException(Exception):
         super().__init__(self.message)
 
     def __str__(self):
-        return '{code:%d,message:%s}' % (self.code, self.message)
+        return '{code:%d,message:{}}' % (self.code, self.message)

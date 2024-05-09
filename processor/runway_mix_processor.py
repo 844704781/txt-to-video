@@ -13,7 +13,7 @@ class RunWayMixParser(RunWayAbstractParser):
         """
         page.goto(self.GEN_PATH, wait_until="domcontentloaded")
         seconds = self.get_seconds(page)
-        logger.info(self.name + "当前余额:%s", seconds)
+        logger.info(self.name + "当前余额:{}", seconds)
         logger.info(self.name + "开始提交提示词和图片")
 
         page.wait_for_selector('button.Button-sc-c1bth8-0')

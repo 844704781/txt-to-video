@@ -12,7 +12,7 @@ class RunWayImgParser(RunWayAbstractParser):
         """
         page.goto(self.GEN_PATH, wait_until="domcontentloaded")
         seconds = self.get_seconds(page)
-        logger.info(self.name + "当前余额:%s", seconds)
+        logger.info(self.name + "当前余额:{}", seconds)
         logger.info(self.name + "开始提交图片")
         file_path = self.image
         page.locator("input[type='file']").set_input_files(file_path)

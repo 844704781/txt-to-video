@@ -26,7 +26,7 @@ class PikaMixProcessor(PikaAbstractProcessor):
             page.mouse.click(10, 10)
             time.sleep(1)
         seconds = self.get_seconds(page)
-        logger.info(self.name + "当前余额:%s", seconds)
+        logger.info(self.name + "当前余额:{}", seconds)
         logger.info(self.name + "开始提交提示词和图片")
 
         file_path = self.image
