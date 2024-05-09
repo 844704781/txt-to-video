@@ -101,7 +101,7 @@ class PikaAbstractProcessor(AbstractProcessor):
 
     def get_seconds(self, page):
         def extract_number(text):
-            if text =='Unlimited':
+            if text is None:
                 return 2147483647
             match = re.search(r'\d+', text)
             if match:
@@ -109,10 +109,15 @@ class PikaAbstractProcessor(AbstractProcessor):
             else:
                 return 0
 
-        # TODO处理无次数限制情况
-        p_tag = page.locator("xpath=//div[contains(@class,'bg-plan-credits')]/p")
+        # TODO 处理无次数限制情况
 
-        count = extract_number(p_tag.inner_text())
+        p_tag = page.locator("xpath=//div[contains(@class,'bg-plan-credits')]/p")
+        p_tag_text = None
+        try:
+            p_tag_text = p_tag.inner_text(timeout=3000)
+        except Exception as e:
+            pass
+        count = extract_number(p_tag_text)
         if count < 10:
             raise CustomException(ErrorCode.INSUFFICIENT_BALANCE, f"当前余额:{count},余额不足,请充值")
         return count

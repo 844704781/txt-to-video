@@ -1,3 +1,5 @@
+import traceback
+
 import net_tools
 from processor.abstract_processor import AbstractProcessor
 import time
@@ -32,7 +34,7 @@ class RunWayAbstractParser(AbstractProcessor):
         try:
             page.goto(self.LOGIN_PATH, wait_until="domcontentloaded")
         except Exception as e:
-            raise CustomException(ErrorCode.TIME_OUT,"获取数据超时，稍后重试")
+            raise CustomException(ErrorCode.TIME_OUT, "获取数据超时，稍后重试")
         # 输入账号
         username_input = page.locator('input[name="usernameOrEmail"]')
         username_input.fill(self.username)
@@ -51,7 +53,7 @@ class RunWayAbstractParser(AbstractProcessor):
 
     def get_seconds(self, page):
         def extract_number(text):
-            if text =='Unlimited':
+            if 'Unlimited' in text:
                 return 2147483647
 
             match = re.search(r'\d+', text)
@@ -60,9 +62,21 @@ class RunWayAbstractParser(AbstractProcessor):
             else:
                 return 0
 
-        # TODO处理无次数限制情况
+        # TODO 处理无次数限制情况
         p_tag = page.locator('.Text-sc-cweq7v-1.GetMoreCreditsButton__UnitsLeftText-sc-66lapz-0.fNdEQX')
-        count_text = p_tag.inner_text()
+        un_limit_tag = page.locator("xpath=//span[@class='Text__BaseText-sc-7ge0qa-0 eDDjVb']")
+        count_text = None
+        try:
+            count_text = un_limit_tag.inner_text(timeout=30000)
+        except Exception as e:
+            pass
+        if count_text is None or len(count_text) == 0:
+            try:
+                count_text = p_tag.inner_text(timeout=3000)
+            except Exception as e:
+                traceback.print_exc()
+                pass
+
         count = extract_number(count_text)
         if count < 10:
             raise CustomException(ErrorCode.INSUFFICIENT_BALANCE, f"当前余额:{count},余额不足,请充值")
