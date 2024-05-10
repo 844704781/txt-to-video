@@ -167,6 +167,8 @@ class TaskMapper:
         """
         try:
             task = Task.select().where((Task.task_id == task_id) & (Task.status != Status.SUCCESS)).first()
+            if task is None:
+                return
             task.status = status
             task.status_is_sync = 0
             if message is not None:
