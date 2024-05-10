@@ -216,7 +216,7 @@ def execute_task():
         logger.info('All tasks have been completed!!!')
     for _task in tasks:
         videoThreadPool.submit(execute_task_func, _task)
-        time.sleep(5)
+        time.sleep(10)
 
 
 def fetch(connector, source):
