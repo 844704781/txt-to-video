@@ -222,8 +222,12 @@ def execute_task():
 
 
 def fetch(connector, source):
+    count = taskMapper.get_un_success_count()
+    if count > 10:
+        # 还有没做完的任务，先不取，或许被其它节点取了?
+        return
     logger.debug(f"【{source}】Get task")
-    tasks = connector.fetch(1)
+    tasks = connector.fetch(50)
     for task in tasks:
         task['source'] = source
     taskMapper.bulk_insert_tasks(tasks)
@@ -314,8 +318,8 @@ def main():
 
     # 创建后台调度器
     scheduler = BackgroundScheduler()
-    # scheduler.add_job(fetch_runway, 'interval', seconds=10 * 60, next_run_time=datetime.now())
-    # scheduler.add_job(fetch_pika, 'interval', seconds=10 * 60, next_run_time=datetime.now())
+    scheduler.add_job(fetch_runway, 'interval', seconds=10, next_run_time=datetime.now())
+    scheduler.add_job(fetch_pika, 'interval', seconds=10, next_run_time=datetime.now())
 
     scheduler.add_job(callback_runway, 'interval', seconds=10)
     scheduler.add_job(execute_task, 'interval', seconds=60, next_run_time=datetime.now())

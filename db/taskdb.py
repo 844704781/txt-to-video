@@ -262,6 +262,10 @@ class TaskMapper:
         except Task.DoesNotExist:
             logger.info(f"Task with ID {task_id} not found or already in SUCCESS status.")
 
+    @staticmethod
+    def get_un_success_count():
+        return Task.select().where((Task.status != Status.SUCCESS)).count()
+
 
 # 创建表
 def create_tables():
