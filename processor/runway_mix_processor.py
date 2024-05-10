@@ -11,7 +11,10 @@ class RunWayMixParser(RunWayAbstractParser):
         :param page:
         :return:
         """
-        page.goto(self.GEN_PATH, wait_until="domcontentloaded")
+        page.goto(self.GEN_PATH, wait_until="load")
+        if '/login' in page.url:
+            return False
+
         seconds = self.get_seconds(page)
         logger.info(self.name + "当前余额:{}", seconds)
         logger.info(self.name + "开始提交提示词和图片")
@@ -24,3 +27,4 @@ class RunWayMixParser(RunWayAbstractParser):
         page.locator("input[type='file']").set_input_files(file_path)
         order_sent = page.locator("div[data-uploading='false']")
         order_sent.wait_for(timeout=60000)
+        return True

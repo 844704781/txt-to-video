@@ -109,10 +109,20 @@ class AbstractProcessor:
             browser = None
             href = None
             try:
-                browser = p.chromium.launch(headless=True)
+                browser = p.chromium.launch(headless=False)
+
+                cookies = os.path.join('cookies', 'state.json')
+                logger.info(self.name + "判断是否登录")
+                if os.path.exists(cookies):
+                    # 使用之前的登录信息
+                    context = browser.new_context(storage_state=cookies)
+                    logger.info(self.name + "已登录")
+                else:
+                    context = browser.new_context()
+                    logger.info(self.name + "未登录")
 
                 logger.info(self.name + "准备中...")
-                page = browser.new_page()
+                page = context.new_page()
 
                 # 设置额外的 HTTP 请求头，禁止加载图片，加快请求速度
                 def abort_img(route):
@@ -123,12 +133,21 @@ class AbstractProcessor:
                         route.continue_()
 
                 page.route("**/*", abort_img)
-                # logger.info(self.name + "登录中...")
-                self.login(page)
-                # logger.info(self.name + "登录成功")
-                logger.info(self.name + "正在写入内容...")
-                self.write(page)
 
+                # logger.info(self.name + "登录成功")
+                logger.info(self.name + "尝试获取余额，写入内容...")
+                is_login = self.write(page)
+                if not is_login:
+                    if not os.path.exists(cookies):
+                        logger.info(self.name + "登录中...")
+                        self.login(page)
+                        # 保存登录信息
+                        context.storage_state(path=cookies)
+                        logger.info(self.name + "登录成功")
+                        logger.info(self.name + "尝试获取余额，写入内容...")
+                        self.write(page)
+
+                logger.info(self.name + "获取余额、写入内容成功")
                 self.commit(page)
                 logger.info(self.name + "提交内容,视频生成中...")
                 href = self.loading(page)
@@ -138,6 +157,7 @@ class AbstractProcessor:
                 logger.exception(self.name + "playwright出错:", e)
                 raise e
             finally:
+                context.close()
                 browser.close()
                 logger.info(self.name + "资源回收")
             return href

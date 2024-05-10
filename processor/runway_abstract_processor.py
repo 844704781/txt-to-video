@@ -1,3 +1,5 @@
+import json
+
 import net_tools
 from processor.abstract_processor import AbstractProcessor
 import time
@@ -126,3 +128,4 @@ class RunWayAbstractParser(AbstractProcessor):
         generate_button = page.locator('button:has-text("Generate 4s")')
         generate_button.wait_for(timeout=60000)
         generate_button.click()
+
