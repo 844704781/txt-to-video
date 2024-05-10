@@ -132,6 +132,7 @@ def run_task(task, account):
     logger.debug(f"【{task.source}】Execute task start")
 
     if account is not None:
+        logger.debug(f"使用数据库随机账号:{account.account_no}，账号配置中...")
         i_config = ConfigParser(account.account_no, account.password)
     else:
         if task.source == TaskSource.PIKA:
@@ -142,6 +143,7 @@ def run_task(task, account):
             password = config['RUNWAY']['password']
         else:
             raise CustomException(ErrorCode.UNSUPPORTED, f'Unsupported source {task.source}')
+        logger.debug(f"数据库中无账号，使用测试账号:{username}，配置中...")
         i_config = ConfigParser(username, password)
     service = transfer(task.source, task.make_type)
 
@@ -212,10 +214,13 @@ def download_image(url):
 
 # 获取账号
 def fetch_account(source):
+    logger.debug(f"{source},随机获取账号中...")
     account = accountMapper.get_random_normal_account(source)
     if account is not None:
+        logger.debug(f"{source},账号获取成功，当前账号:{account.account_no},余额:{account.balance}")
         return account
     else:
+        logger.debug(f"{source},本地已无可用账号，云端获取账号中...")
         worker_id = get_worker_id()
         accounts = None
         if source == TaskSource.RUN_WAY:
@@ -224,10 +229,14 @@ def fetch_account(source):
             accounts = pikaConnector.fetch_accounts(worker_id)
         else:
             pass
+        logger.debug(f"{source},云端取到账号数量:{len(accounts)},本地保存中...")
         for account in accounts:
             account.source = source
         accountMapper.bulk_insert_tasks(accounts)
-        return accountMapper.get_random_normal_account(source)
+        logger.debug(f"{source},随机获取账号中...")
+        account = accountMapper.get_random_normal_account(source)
+        logger.debug(f"{source},账号获取成功，当前账号:{account.account_no},余额:{account.balance}")
+        return account
 
 
 def execute_task():
