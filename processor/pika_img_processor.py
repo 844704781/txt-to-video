@@ -13,7 +13,7 @@ class PikaImgProcessor(PikaAbstractProcessor):
             except Exception as e:
                 raise CustomException(ErrorCode.TIME_OUT, "无法连接" + self.LOGIN_PATH + "请检查网络")
 
-        if '/login' in page.url:
+        if '/login' in page.url or '/home' in page.url:
             return False
 
         for num in range(1, 10):

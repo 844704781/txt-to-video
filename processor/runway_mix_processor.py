@@ -25,6 +25,6 @@ class RunWayMixParser(RunWayAbstractParser):
 
         file_path = self.image
         page.locator("input[type='file']").set_input_files(file_path)
-        order_sent = page.locator("div[data-uploading='false']")
-        order_sent.wait_for(timeout=60000)
+        # order_sent = page.locator("div[data-uploading='false']")
+        # order_sent.wait_for(timeout=60000)
         return True

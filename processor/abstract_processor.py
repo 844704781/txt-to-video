@@ -20,6 +20,13 @@ class AbstractProcessor:
         self.task_id = task_id
         self.const = name
         self.progress_callback = None
+        if 'RUN_WAY' in self.const:
+            self.source = 'RUNWAY'
+        elif 'PIKA' in self.const:
+            self.source = 'PIKA'
+        else:
+            # nothing...
+            pass
 
     def set_progress_callback(self, progress_callback: object = None):
         self.progress_callback = progress_callback
@@ -109,9 +116,20 @@ class AbstractProcessor:
             browser = None
             href = None
             try:
-                browser = p.chromium.launch(headless=True)
+                browser = p.chromium.launch(
+                    ignore_default_args=["--enable-automation"],
+                    # args=["--no-sandbox",
+                    #       "--disable-setuid-sandbox",
+                    #       "--disable-gpu",
+                    #       "--disable-dev-shm-usage",
+                    #       "--no-first-run",
+                    #       "--no-zygote",
+                    #       "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.108 Safari/537.36",
+                    #       "--blink-settings=imagesEnabled=false"
+                    #       ],
+                    headless=True)
 
-                cookies = os.path.join('cookies', 'state.json')
+                cookies = os.path.join('cookies', f'{self.source}-state.json')
                 logger.info(self.name + "判断是否登录")
                 if os.path.exists(cookies):
                     # 使用之前的登录信息
