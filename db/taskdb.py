@@ -167,7 +167,7 @@ class TaskMapper:
         """
         try:
             task = Task.select().where((Task.task_id == task_id) & (Task.status != Status.SUCCESS)).first()
-            task.status = status
+            task.status = status.value
             task.status_is_sync = 0
             if message is not None:
                 task.message = message
@@ -204,7 +204,7 @@ class TaskMapper:
         try:
             task = Task.select().where((Task.task_id == task_id) & (Task.status != Status.SUCCESS)).first()
             task.progress = progress
-            task.status = Status.DOING
+            task.status = Status.DOING.value
             task.save()
         except Task.DoesNotExist:
             logger.info(f"Task with ID {task_id} not found or already in SUCCESS status.")
