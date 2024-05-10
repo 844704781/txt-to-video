@@ -1,3 +1,5 @@
+import traceback
+
 import net_tools
 from processor.abstract_processor import AbstractProcessor
 import time
@@ -45,12 +47,24 @@ class RunWayAbstractParser(AbstractProcessor):
         submit_button = page.locator('button[type="submit"]')
         submit_button.click()
         # 等待一段时间确保页面加载完全
+
         try:
-            page.wait_for_selector('a[href="/ai-tools/gen-2"]')
+            ele = page.wait_for_selector("//span[@class='HomeItem__text__I6dp2']")
         except Exception as e:
+            traceback.print_exc()
             pass
-        # 示例：保存
-        return page.context.cookies()
+
+        local_storage_data = page.evaluate('''() => {
+            let data = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                let key = localStorage.key(i);
+                let value = localStorage.getItem(key);
+                data[key] = value;
+            }
+            return data;
+        }''')
+
+        return page.context.cookies(), local_storage_data
 
     def get_seconds(self, page):
         def extract_number(text):

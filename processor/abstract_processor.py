@@ -1,3 +1,4 @@
+import json
 from abc import abstractmethod
 from playwright.sync_api import sync_playwright
 import subprocess
@@ -7,6 +8,8 @@ from typing import Optional, Callable
 
 from logger_config import logger
 
+project_root = os.path.dirname(os.path.abspath(__file__))
+
 
 class AbstractProcessor:
     def __init__(self, username, password, name, task_id: str = None):
@@ -14,6 +17,7 @@ class AbstractProcessor:
         self.password = password
         self.content = None
         self.image = None
+        self.website = name
         self.name = f'【{name}】'
         if task_id is not None:
             self.name = self.name + f'（{task_id}）'
@@ -95,6 +99,27 @@ class AbstractProcessor:
         """
         pass
 
+    @staticmethod
+    def save_cookies_to_file(cookies, local_storage_data, filename):
+        cookies_dir = os.path.join(project_root, 'cookies')
+        if not os.path.exists(cookies_dir):
+            os.makedirs(cookies_dir)
+        filename = cookies_dir + filename
+
+        with open(filename, 'w') as file:
+            json.dump({'cookies': cookies, 'local_storage': local_storage_data}, file)
+
+    @staticmethod
+    # 从文件加载Cookies
+    def load_cookies_from_file(filename):
+        cookies_dir = os.path.join(project_root, 'cookies')
+        filename = cookies_dir + filename
+        if not os.path.exists(filename):
+            return None
+        with open(filename, 'r') as file:
+            data = json.load(file)
+            return data['cookies'], data['local_storage']
+
     def run(self):
         if self.const in [VideoConst.PIKA_TXT, VideoConst.PIKA_MIX,
                           VideoConst.RUN_WAY_TXT, VideoConst.RUN_WAY_MIX]:
@@ -109,7 +134,7 @@ class AbstractProcessor:
             browser = None
             href = None
             try:
-                browser = p.chromium.launch(headless=True)
+                browser = p.chromium.launch(headless=False)
 
                 logger.info(self.name + "准备中...")
                 page = browser.new_page()
@@ -124,7 +149,18 @@ class AbstractProcessor:
 
                 page.route("**/*", abort_img)
                 # logger.info(self.name + "登录中...")
-                self.login(page)
+                data = self.load_cookies_from_file(self.website)
+                if data is not None:
+                    page.context.add_cookies(data[0])
+                    page.evaluate('''(local_storage_data) => {
+                        for (let key in local_storage_data) {
+                            localStorage.setItem(key, local_storage_data[key]);
+                        }
+                    }''', data[1])
+
+                else:
+                    cookies, local_storage_data = self.login(page)
+                    self.save_cookies_to_file(cookies, local_storage_data, self.website)
                 # logger.info(self.name + "登录成功")
                 logger.info(self.name + "正在写入内容...")
                 self.write(page)
