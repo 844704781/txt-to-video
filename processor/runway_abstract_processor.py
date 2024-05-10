@@ -12,6 +12,8 @@ from logger_config import logger
 from common.custom_exception import CustomException
 from entity.error_code import ErrorCode
 
+import re
+
 
 class RunWayAbstractParser(AbstractProcessor):
     """
@@ -37,22 +39,39 @@ class RunWayAbstractParser(AbstractProcessor):
             raise CustomException(ErrorCode.TIME_OUT, "获取数据超时，稍后重试")
         # 输入账号
         username_input = page.locator('input[name="usernameOrEmail"]')
+
         username_input.fill(self.username)
 
         # 输入密码
         password_input = page.locator('input[type="password"]')
         password_input.fill(self.password)
-
+        if len(self.password) <= 6:
+            self.balance_callback(_account=self.username, _count=-1, _message='密码长度小于等于6')
+            return False
         # 点击提交按钮
         submit_button = page.locator('button[type="submit"]')
         submit_button.click()
+        is_login = False
         # 等待一段时间确保页面加载完全
         try:
+            # 检查是否登录成功
             page.wait_for_selector('a[href="/ai-tools/gen-2"]')
+            is_login = True
         except Exception as e:
             pass
+        if not is_login:
+            try:
+                logger.info(self.name + "登录失败,获取失败原因")
+                err_message = page.locator("xpath=//div[@data-kind='error']")
+                danger_txt = err_message.inner_text()
+                logger.info(self.name + f"登录失败，失败原因为:{danger_txt}")
+                self.balance_callback(_account=self.username, _count=-1, _message=danger_txt)
+            except Exception as e:
+                pass
+            finally:
+                return False
         # 示例：保存
-        return page.context.cookies()
+        return True
 
     def get_seconds(self, page):
         def extract_number(text):
@@ -88,7 +107,7 @@ class RunWayAbstractParser(AbstractProcessor):
             raise CustomException(ErrorCode.TIME_OUT, "余额无法获取")
         count = extract_number(count_text)
         if self.balance_callback is not None:
-            self.balance_callback(self.username, count)
+            self.balance_callback(_account=self.username, _count=count, _message='余额充足')
         if count < 10:
             raise CustomException(ErrorCode.INSUFFICIENT_BALANCE, f"当前余额:{count},余额不足,请充值")
 

@@ -74,7 +74,7 @@ class PikaConnector(BaseConnector):
         :return:
         """
         website = "pika"
-        uri = f'/openapi/account/{website}/fetch'
+        uri = f'/openapi/account/{website}/update'
 
         resp = self.post(uri, payload)
         if resp.get('code') != 0:

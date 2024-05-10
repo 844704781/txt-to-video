@@ -67,6 +67,7 @@ def get_worker_id():
     # return ':'.join(['{:02x}'.format((mac_address >> elements) & 0xff) for elements in range(0, 2 * 6, 2)][::-1])
     return 'worker01'
 
+
 # 获取请求连接
 def get_connector(source):
     if source == TaskSource.PIKA:
@@ -96,17 +97,21 @@ def progress_callback(_task, _percent):
     callbackThreadPool.submit(callback_func, _task, _percent)
 
 
-def balance_callback(_source, _account, _count):
-    def callback_func(source, _account_no, count):
-        account = accountMapper.get_by_account_no(source, _account_no)
+def balance_callback(_source, _account, _count: int = None, _message: str = None):
+    def callback_func(source, account_no, count: int = None, message: str = None):
+        account = accountMapper.get_by_account_no(source, account_no)
         if account is None:
             return
-        if count >= 10:
-            account_status = AccountStatus.NORMAL
+
+        elif count is not None and count >= 10:
+            account_status = AccountStatus.NORMAL.value
             reason = "余额充足"
-        else:
-            account_status = AccountStatus.DISABLED
+        elif count is not None and count >= 0:
+            account_status = AccountStatus.DISABLED.value
             reason = "余额不足(余额小于10)"
+        else:
+            account_status = AccountStatus.EXCEPTION.value
+            reason = message
 
         accountMapper.set_balance(account.id, account_status, reason, count)
         payload = {
@@ -121,14 +126,16 @@ def balance_callback(_source, _account, _count):
         elif source == AccountSource.RUN_WAY:
             runwayConnector.callback_account(payload)
 
-        if count < 10:
+        if count is not None and count < 10:
             fetch_account(source)
+        pass
 
-    callbackThreadPool.submit(callback_func, _source, _account, _count)
+    # callback_func(_source, _account, _count, _message)
+    callbackThreadPool.submit(callback_func, _source, _account, _count, _message)
 
 
 # 跑任务
-def run_task(task, account):
+def run_task(task, account: object = None):
     logger.debug(f"【{task.source}】Execute task start")
 
     if account is not None:
@@ -153,8 +160,9 @@ def run_task(task, account):
         .set_processor(service) \
         .set_task_id(task.task_id) \
         .progress_callback(lambda percent: progress_callback(task, percent)) \
-        .set_balance_callback(lambda _account, count: balance_callback(task.source, _account, count)) \
-        .build()
+        .set_balance_callback(
+        lambda _account, _count, _message: balance_callback(task.source, _account, _count, _message)
+    ).build()
 
     try:
         video_url = processor.run()
@@ -231,11 +239,14 @@ def fetch_account(source):
             pass
         logger.debug(f"{source},云端取到账号数量:{len(accounts)},本地保存中...")
         for account in accounts:
-            account.source = source
+            account['source'] = source
+            account['balance'] = 0
+            account['reason'] = ''
         accountMapper.bulk_insert_tasks(accounts)
         logger.debug(f"{source},随机获取账号中...")
         account = accountMapper.get_random_normal_account(source)
-        logger.debug(f"{source},账号获取成功，当前账号:{account.account_no},余额:{account.balance}")
+        if account is not None:
+            logger.debug(f"{source},账号获取成功，当前账号:{account.account_no},余额:{account.balance}")
         return account
 
 

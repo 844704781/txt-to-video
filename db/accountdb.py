@@ -21,11 +21,11 @@ class Account(BaseModel):
     account_no = peewee.CharField(max_length=255, unique=True)
     source = peewee.CharField(choices=[(Source.RUN_WAY, Source.RUN_WAY), (Source.PIKA, Source.PIKA)], null=False)
     password = peewee.CharField(max_length=255)
-    job_num = peewee.IntegerField()
-    balance = peewee.IntegerField()
+    job_num = peewee.IntegerField(default=4)
+    balance = peewee.IntegerField(default=0)
     status = peewee.IntegerField(choices=[(status.value, status.name) for status in AccountStatus],
                                  default=AccountStatus.NORMAL)
-    reason = peewee.CharField(max_length=255)
+    reason = peewee.CharField(max_length=255, default='')
     create_time = peewee.IntegerField(default=int(datetime.datetime.now().timestamp()))
     update_time = peewee.IntegerField(default=int(datetime.datetime.now().timestamp()))
 
@@ -104,14 +104,19 @@ class AccountMapper:
         return Account.select().where(Account.id == _id).first()
 
     # 设置余额
-    def set_balance(self, _id, account_status, reason, balance):
+    def set_balance(self, _id, account_status: int = None, reason: str = None, balance: int = None, count: int = None):
         account = self.get(_id)
         if account is None:
             return
-        account.status = account_status
-        account.reason = reason
-        account.balance = balance
-        account.save(account)
+        if account_status is not None:
+            account.status = account_status
+        if count is not None:
+            account.count = count
+        if reason is not None:
+            account.reason = reason
+        if balance is not None:
+            account.balance = balance
+        account.save()
 
     @staticmethod
     def get_random_normal_account(source):

@@ -11,6 +11,11 @@ from common.custom_exception import CustomException
 from logger_config import logger
 
 
+def is_valid_email(email):
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return re.match(pattern, email) is not None
+
+
 class PikaAbstractProcessor(AbstractProcessor):
 
     def __init__(self, username, password, name, task_id: str = None):
@@ -24,6 +29,10 @@ class PikaAbstractProcessor(AbstractProcessor):
             raise CustomException(ErrorCode.TIME_OUT, "无法连接" + self.host + "请检查网络")
 
     def login(self, page):
+        if not is_valid_email(self.username):
+            self.balance_callback(_account=self.username, _count=-1, _message='无效的账号')
+            return False
+
         try:
             page.goto(self.LOGIN_PATH, wait_until="domcontentloaded")
         except Exception as e:
@@ -43,9 +52,26 @@ class PikaAbstractProcessor(AbstractProcessor):
         password_input.fill(self.password)
         login_btn = page.locator('xpath=//main//form/button')
         login_btn.click()
-        faq = page.locator("xpath=//main//a[@href='/faq']").get_attribute('href')
-        if faq is None:
-            time.sleep(60)
+        is_login = False
+        try:
+            # 检查是否登录成功
+            page.locator("xpath=//main//a[@href='/faq']").get_attribute('href', timeout=30000)
+            is_login = True
+        except Exception as e:
+            pass
+        if not is_login:
+            # 检查账号状态
+            try:
+                logger.info(self.name + "登录失败,获取失败原因")
+                danger = page.locator("xpath=//p[contains(@class,'text-danger-primary')]")
+                danger_txt = danger.inner_text()
+                logger.info(self.name + f"登录失败，失败原因为:{danger_txt}")
+                self.balance_callback(_account=self.username, _count=-1, _message=danger_txt)
+            except Exception as e:
+                return
+            finally:
+                return False
+        return True
 
     @abstractmethod
     def write(self, page):
@@ -132,7 +158,7 @@ class PikaAbstractProcessor(AbstractProcessor):
         count = extract_number(p_tag_text)
 
         if self.balance_callback is not None:
-            self.balance_callback(self.username, count)
+            self.balance_callback(_account=self.username, _count=count, _message='余额充足')
         if count < 10:
             raise CustomException(ErrorCode.INSUFFICIENT_BALANCE, f"当前余额:{count},余额不足,请充值")
 

@@ -132,7 +132,7 @@ class AbstractProcessor:
                     #       "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.108 Safari/537.36",
                     #       "--blink-settings=imagesEnabled=false"
                     #       ],
-                    headless=True)
+                    headless=False)
 
                 cookies = os.path.join('cookies', f'{self.source}-{self.username}-state.json')
                 logger.info(self.name + "判断是否登录")
@@ -163,7 +163,9 @@ class AbstractProcessor:
                 if not is_login:
                     if not os.path.exists(cookies):
                         logger.info(self.name + "登录中...")
-                        self.login(page)
+                        is_login_success = self.login(page)
+                        if not is_login_success:
+                            return
                         # 保存登录信息
                         context.storage_state(path=cookies)
                         logger.info(self.name + "登录成功")
