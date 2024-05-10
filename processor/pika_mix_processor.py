@@ -6,11 +6,23 @@ from logger_config import logger
 
 from common.custom_exception import CustomException
 from entity.error_code import ErrorCode
-
+from common.custom_exception import CustomException
+from entity.error_code import ErrorCode
 
 class PikaMixProcessor(PikaAbstractProcessor):
 
     def write(self, page):
+        if 'blank' in page.url:
+            # 尝试进入首页
+            try:
+                page.goto(self.host, wait_until="domcontentloaded")
+            except Exception as e:
+                raise CustomException(ErrorCode.TIME_OUT, "无法连接" + self.LOGIN_PATH + "请检查网络")
+
+        if '/login' in page.url:
+            return False
+
+
         for num in range(1, 10):
             page.mouse.click(10, 10)
         explor_page = page.locator("xpath=//main//a[contains(@class,'font-extra-thick')][2]")
@@ -22,7 +34,7 @@ class PikaMixProcessor(PikaAbstractProcessor):
         if self.content is None:
             raise CustomException(ErrorCode.INVALID_ARG, "Empty content")
 
-        for num in range(1, 10):
+        for num in range(0, 2):
             page.mouse.click(10, 10)
             time.sleep(1)
         seconds = self.get_seconds(page)

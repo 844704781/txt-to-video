@@ -15,13 +15,13 @@ class PikaAbstractProcessor(AbstractProcessor):
 
     def __init__(self, username, password, name, task_id: str = None):
         super().__init__(username, password, name, task_id)
-        host = 'https://pika.art'
-        self.LOGIN_PATH = host + '/login'
-        logger.info(self.name + "checking ->" + host)
-        check_result = net_tools.check_website_availability(host)
+        self.host = 'https://pika.art'
+        self.LOGIN_PATH = self.host + '/login'
+        logger.info(self.name + "checking ->" + self.host)
+        check_result = net_tools.check_website_availability(self.host)
         logger.info(self.name + "result ->" + str(check_result))
         if not check_result:
-            raise CustomException(ErrorCode.TIME_OUT, "无法连接" + host + "请检查网络")
+            raise CustomException(ErrorCode.TIME_OUT, "无法连接" + self.host + "请检查网络")
 
     def login(self, page):
         try:

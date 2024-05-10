@@ -109,7 +109,7 @@ class AbstractProcessor:
             browser = None
             href = None
             try:
-                browser = p.chromium.launch(headless=False)
+                browser = p.chromium.launch(headless=True)
 
                 cookies = os.path.join('cookies', 'state.json')
                 logger.info(self.name + "判断是否登录")
