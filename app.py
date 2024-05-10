@@ -63,9 +63,9 @@ project_root = os.path.dirname(os.path.abspath(__file__))
 
 
 def get_worker_id():
-    mac_address = uuid.getnode()
-    return ':'.join(['{:02x}'.format((mac_address >> elements) & 0xff) for elements in range(0, 2 * 6, 2)][::-1])
-
+    # mac_address = uuid.getnode()
+    # return ':'.join(['{:02x}'.format((mac_address >> elements) & 0xff) for elements in range(0, 2 * 6, 2)][::-1])
+    return 'worker01'
 
 # 获取请求连接
 def get_connector(source):
