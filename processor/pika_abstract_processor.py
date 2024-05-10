@@ -84,12 +84,24 @@ class PikaAbstractProcessor(AbstractProcessor):
                 logger.info("\n" + self.name + "视频生成成功")
                 video = page.locator(
                     "xpath=//main//div[contains(@class,'group/card')][1]//div[@class='relative']//video/source")
-                try:
-                    link = video.get_attribute('src', timeout=30000)
-                except Exception as e:
-                    logger.exception(self.name + "获取视频链接出错", e)
+                f = False
+                ec = None
+                link = None
+                for i in range(0, 10):
+                    try:
+                        link = video.get_attribute('src', timeout=30000)
+                        f = True
+                    except Exception as e:
+                        ec = e
+                        time.sleep(1)
+                        continue
+                    if f:
+                        break
+                if not f:
+                    logger.exception(self.name + "获取视频链接出错", ec)
                     link = None
-                break
+                    break
+
             else:
                 # pika给的不准
                 dasharray = progress_text.get_attribute('stroke-dasharray')

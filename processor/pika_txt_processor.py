@@ -11,13 +11,20 @@ class PikaTxtAbstractProcessor(PikaAbstractProcessor):
         for num in range(1, 10):
             page.mouse.click(10, 10)
         explor_page = page.locator("xpath=//main//a[contains(@class,'font-extra-thick')][2]")
-        i = 0
-        while i < 10:
+        f = False
+        ec = None
+        for i in range(0, 10):
             try:
                 explor_page.click()
+                f = True
             except Exception as e:
+                ec = e
                 time.sleep(1)
                 continue
+            if f:
+                break
+        if not f:
+            raise ec
 
         seconds = self.get_seconds(page)
         logger.info(self.name + "当前余额:{}", seconds)
