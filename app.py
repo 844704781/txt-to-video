@@ -204,7 +204,6 @@ def execute_task():
                 task.message = execute_result.message
                 task.err_code = execute_result.code
                 taskMapper.set_fail(task.task_id, execute_result.code, execute_result.message)
-                taskMapper.set_status(task.task_id, Status.FAIL, execute_result.message)
                 _callback(get_connector(task.source), task)
         except CustomException as e:
             raise e
@@ -252,7 +251,7 @@ def _callback(connector, task):
     try:
         connector.callback(payload)
     except CustomException as e:
-        logger.warning(f"【{task.source}】Callback task Warning:{e}")
+        logger.warning(f"【{task.source}】Callback task Warning:{e.message}")
         taskMapper.update_server_message(e.message, task.task_id)
         return
     except Exception as e:
