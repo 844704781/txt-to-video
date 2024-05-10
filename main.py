@@ -1,6 +1,5 @@
 import configparser
 import argparse
-import traceback
 
 from entity.iconfig_parser import ConfigParser
 from video_builder import VideoBuilder

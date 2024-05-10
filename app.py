@@ -2,7 +2,6 @@
 import sys
 import time
 from playwright.sync_api import sync_playwright
-import traceback
 from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 from connector.runway_connector import RunwayConnector
@@ -114,7 +113,6 @@ def run_task(task):
         logger.error(f"【{task.source}】Execute task end,error:{str(e)}")
         return ResultDo(e.code, e.message)
     except Exception as e:
-        traceback.print_exc()
         logger.exception(f"【{task.source}】Execute task end,error:", e)
         return ResultDo(ErrorCode.TIME_OUT, 'Video generation timed out.')
     logger.debug(f"【{task.source}】Execute task end")
@@ -160,7 +158,7 @@ def download_image(url):
         else:
             logger.error(f"Failed to download image from {url}: HTTP status code {response.status_code}")
     except Exception as e:
-        logger.exception(f"Failed to download image from {url}",e)
+        logger.exception(f"Failed to download image from {url}", e)
         raise CustomException(ErrorCode.TIME_OUT, str(e))
 
 
@@ -181,7 +179,7 @@ def execute_task():
             taskMapper.set_fail(task.task_id, e.code, e.message)
             return
         except Exception as e:
-            traceback.print_exception()
+            logger.exception(e)
             taskMapper.set_fail(task.task_id, ErrorCode.UNKNOWN, str(e))
             return
 
@@ -211,7 +209,7 @@ def execute_task():
         except CustomException as e:
             raise e
         except Exception as e:
-            traceback.print_exc()
+            logger.exception(e)
             raise e
 
     tasks = taskMapper.get_executable_tasks(10)
@@ -253,10 +251,11 @@ def _callback(connector, task):
     try:
         connector.callback(payload)
     except CustomException as e:
+        logger.warning(f"【{task.source}】Callback task Warning:{e}")
         taskMapper.update_server_message(e.message, task.task_id)
         return
     except Exception as e:
-        traceback.print_exc()
+        logger.exception(f"【{task.source}】Callback task Fail", e)
         taskMapper.update_server_message(str(e), task.task_id)
         return
     taskMapper.set_synced_by_task_id(task.task_id)

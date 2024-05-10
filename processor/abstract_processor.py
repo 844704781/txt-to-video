@@ -139,4 +139,5 @@ class AbstractProcessor:
                 raise e
             finally:
                 browser.close()
+                logger.info(self.name + "资源回收")
             return href

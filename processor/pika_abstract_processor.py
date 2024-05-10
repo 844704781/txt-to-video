@@ -85,7 +85,7 @@ class PikaAbstractProcessor(AbstractProcessor):
                 video = page.locator(
                     "xpath=//main//div[contains(@class,'group/card')][1]//div[@class='relative']//video/source")
                 try:
-                    link = video.get_attribute('src', timeout=10000)
+                    link = video.get_attribute('src', timeout=30000)
                 except Exception as e:
                     logger.exception(self.name + "获取视频链接出错", e)
                     link = None

@@ -1,4 +1,3 @@
-import traceback
 
 import net_tools
 from processor.abstract_processor import AbstractProcessor
@@ -74,7 +73,7 @@ class RunWayAbstractParser(AbstractProcessor):
             try:
                 count_text = p_tag.inner_text(timeout=3000)
             except Exception as e:
-                traceback.print_exc()
+                logger.exception(e)
                 pass
 
         count = extract_number(count_text)

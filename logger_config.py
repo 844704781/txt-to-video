@@ -21,6 +21,12 @@ logger.add(folder_ + "all.log", level="DEBUG", backtrace=backtrace_, diagnose=di
            rotation=rotation_, retention=retention_, encoding=encoding_,
            filter=lambda record: record["level"].no >= logger.level("DEBUG").no)
 
+
+logger.add(folder_ + "info.log", level="INFO", backtrace=backtrace_, diagnose=diagnose_,
+           format=format_, colorize=False,
+           rotation=rotation_, retention=retention_, encoding=encoding_,
+           filter=lambda record: record["level"].no >= logger.level("INFO").no)
+
 logger.add(folder_ + "error.log", level="ERROR", backtrace=backtrace_, diagnose=diagnose_,
            format=format_, colorize=False,
            rotation=rotation_, retention=retention_, encoding=encoding_,
