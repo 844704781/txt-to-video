@@ -51,7 +51,7 @@ def main():
     img = args.image
 
     if service is None:
-        service = VideoConst.RUN_WAY_MIX
+        service = VideoConst.PIKA_MIX
 
     if service == VideoConst.PIKA_TXT \
             or service == VideoConst.PIKA_IMG \

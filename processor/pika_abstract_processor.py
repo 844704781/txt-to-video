@@ -100,7 +100,7 @@ class PikaAbstractProcessor(AbstractProcessor):
                 if not f:
                     logger.exception(self.name + "获取视频链接出错", ec)
                     link = None
-                    break
+                break
 
             else:
                 # pika给的不准

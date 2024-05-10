@@ -110,7 +110,7 @@ def run_task(task):
     try:
         video_url = processor.run()
     except CustomException as e:
-        logger.error(f"【{task.source}】Execute task end,error:{str(e)}")
+        logger.error(f"【{task.source}】Execute task end,error:{e.message}")
         return ResultDo(e.code, e.message)
     except Exception as e:
         logger.exception(f"【{task.source}】Execute task end,error:", e)
