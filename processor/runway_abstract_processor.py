@@ -76,11 +76,11 @@ class RunWayAbstractParser(AbstractProcessor):
                 try:
                     count_text = p_tag.inner_text(timeout=30000)
                 except Exception as e:
-                    logger.exception(e)
                     pass
             if count_text is not None:
                 break
-
+        if count_text is None:
+            raise CustomException(ErrorCode.TIME_OUT, "余额无法获取")
         count = extract_number(count_text)
         if count < 10:
             raise CustomException(ErrorCode.INSUFFICIENT_BALANCE, f"当前余额:{count},余额不足,请充值")
