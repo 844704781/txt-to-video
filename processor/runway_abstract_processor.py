@@ -67,18 +67,21 @@ class RunWayAbstractParser(AbstractProcessor):
         p_tag = page.locator('.Text-sc-cweq7v-1.GetMoreCreditsButton__UnitsLeftText-sc-66lapz-0.fNdEQX')
         un_limit_tag = page.locator("xpath=//span[@class='Text__BaseText-sc-7ge0qa-0 eDDjVb']")
         count_text = None
-        for i in range(1, 10):
+        for i in range(0, 10):
             try:
-                count_text = un_limit_tag.inner_text(timeout=30000)
+                logger.info(f"{self.name}正在获取余额")
+                count_text = un_limit_tag.inner_text(timeout=10000)
             except Exception as e:
                 pass
             if count_text is None or len(count_text) == 0:
                 try:
-                    count_text = p_tag.inner_text(timeout=30000)
+                    count_text = p_tag.inner_text(timeout=10000)
                 except Exception as e:
                     pass
             if count_text is not None:
+                logger.info(f"{self.name}余额获取成功,尝试次数:{i}")
                 break
+            logger.info(f"{self.name}余额获取失败，重新尝试，剩余尝试次数:{10 - i}")
         if count_text is None:
             raise CustomException(ErrorCode.TIME_OUT, "余额无法获取")
         count = extract_number(count_text)
