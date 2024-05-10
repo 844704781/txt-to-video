@@ -81,7 +81,7 @@ class RunWayAbstractParser(AbstractProcessor):
             if count_text is not None:
                 logger.info(f"{self.name}余额获取成功,尝试次数:{i}")
                 break
-            logger.info(f"{self.name}余额获取失败，重新尝试，剩余尝试次数:{10 - i}")
+            logger.info(f"{self.name}余额获取失败，重新尝试，剩余尝试次数:{3 - i}")
         if count_text is None:
             raise CustomException(ErrorCode.TIME_OUT, "余额无法获取")
         count = extract_number(count_text)
