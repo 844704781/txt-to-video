@@ -45,7 +45,10 @@ class RunWayAbstractParser(AbstractProcessor):
         submit_button = page.locator('button[type="submit"]')
         submit_button.click()
         # 等待一段时间确保页面加载完全
-        page.wait_for_selector('a[href="/ai-tools/gen-2"]', timeout=60000)
+        try:
+            page.wait_for_selector('a[href="/ai-tools/gen-2"]')
+        except Exception as e:
+            pass
         # 示例：保存
         return page.context.cookies()
 
