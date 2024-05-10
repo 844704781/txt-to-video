@@ -115,4 +115,5 @@ class RunWayAbstractParser(AbstractProcessor):
     def commit(self, page):
         # 点击按钮
         generate_button = page.locator('button:has-text("Generate 4s")')
+        generate_button.wait_for(timeout=60000)
         generate_button.click()
