@@ -6,7 +6,6 @@ from entity.task_make_type import MakeType
 import os
 from logger_config import logger
 
-
 current_dir = os.path.dirname(__file__)
 project_root = os.path.abspath(os.path.join(current_dir, ".."))
 
@@ -183,6 +182,8 @@ class TaskMapper:
 
         try:
             task = Task.select().where((Task.task_id == task_id) & (Task.status != Status.SUCCESS)).first()
+            if task is None:
+                return
             task.status = Status.FAIL.value
             task.err_code = err_code
             task.status_is_sync = 0
@@ -195,6 +196,8 @@ class TaskMapper:
     def set_success(task_id, video_url):
         try:
             task = Task.select().where((Task.task_id == task_id) & (Task.status != Status.SUCCESS)).first()
+            if task is None:
+                return
             task.status = Status.SUCCESS.value
             task.video_url = video_url
             task.save()
@@ -205,6 +208,8 @@ class TaskMapper:
     def set_progress(progress, task_id):
         try:
             task = Task.select().where((Task.task_id == task_id) & (Task.status != Status.SUCCESS)).first()
+            if task is None:
+                return
             task.progress = progress
             task.status = Status.DOING.value
             task.save()
@@ -217,6 +222,8 @@ class TaskMapper:
             return
         try:
             task = Task.select().where((Task.task_id == task_id) & (Task.status != Status.SUCCESS)).first()
+            if task is None:
+                return
             task.server_message = message
             task.save()
         except Task.DoesNotExist:
@@ -243,6 +250,8 @@ class TaskMapper:
             return
         try:
             task = Task.select().where((Task.task_id == task_id) & (Task.status != Status.SUCCESS)).first()
+            if task is None:
+                return
             task.image_path = image_path
             task.save()
         except Task.DoesNotExist:
