@@ -201,6 +201,7 @@ class TaskMapper:
             if task is None:
                 return
             task.status = Status.SUCCESS.value
+            task.status_is_sync = 0
             task.message = 'Success'
             task.video_url = video_url
             task.save()
@@ -215,6 +216,7 @@ class TaskMapper:
                 return
             task.progress = progress
             task.status = Status.DOING.value
+            task.status_is_sync = 0
             task.save()
         except Task.DoesNotExist:
             logger.info(f"Task with ID {task_id} not found or already in SUCCESS status.")

@@ -67,7 +67,7 @@ class RunWayAbstractParser(AbstractProcessor):
         p_tag = page.locator('.Text-sc-cweq7v-1.GetMoreCreditsButton__UnitsLeftText-sc-66lapz-0.fNdEQX')
         un_limit_tag = page.locator("xpath=//span[@class='Text__BaseText-sc-7ge0qa-0 eDDjVb']")
         count_text = None
-        for i in range(0, 10):
+        for i in range(0, 3):
             try:
                 logger.info(f"{self.name}正在获取余额")
                 count_text = un_limit_tag.inner_text(timeout=10000)
