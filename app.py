@@ -189,6 +189,7 @@ def execute_task():
             # 将任务设置成执行中
             task.status = Status.DOING.value
             taskMapper.set_status(task.task_id, task.status)
+            logger.debug(f"将task设置为doing状态,task_id:{task.task_id}")
             _callback(get_connector(task.source), task)
 
             execute_result = run_task(task)
