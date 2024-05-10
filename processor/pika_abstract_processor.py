@@ -53,6 +53,7 @@ class PikaAbstractProcessor(AbstractProcessor):
 
     def commit(self, page):
         submit_btn = page.locator("xpath=//main//button[@type='submit']")
+        submit_btn.wait_for(timeout=60000)
         submit_btn.click()
 
         # 等待按钮变可按状态
