@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import hashlib
 import sys
 import time
 from playwright.sync_api import sync_playwright
@@ -130,14 +131,15 @@ def checking():
 # 下载图片
 def download_image(url):
     # TODO test...
-    def generate_random_filename(length):
-        """生成指定长度的随机文件名"""
-        return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+    def generate_hash_filename(content):
+        """根据文件内容的哈希值生成文件名"""
+        hash_value = hashlib.sha256(content).hexdigest()
+        return hash_value.lower()
 
     images_dir = os.path.join(project_root, 'images')
     if not os.path.exists(images_dir):
         os.makedirs(images_dir)
-
+    images_dir = os.path.relpath(images_dir, project_root)
     # 发送 GET 请求获取图片
     try:
         response = requests.get(url)
@@ -146,9 +148,9 @@ def download_image(url):
             content_type = response.headers.get('content-type')
             image_extension = content_type.split('/')[-1]
 
-            # 生成随机文件名
-            random_filename = generate_random_filename(64)
-            filename = os.path.join(images_dir, f"{random_filename}.{image_extension}")
+            # 根据文件内容的哈希值生成文件名
+            hash_filename = generate_hash_filename(response.content)
+            filename = os.path.join(images_dir, f"{hash_filename}.{image_extension}")
 
             # 保存图片到本地
             with open(filename, 'wb') as f:
@@ -172,7 +174,7 @@ def execute_task():
                     or not os.path.exists(task.image_path):
 
                 if task.make_type in [MakeType.IMAGE, MakeType.MIX]:
-                    image_path = download_image(task.make_type, task.image_url)
+                    image_path = download_image(task.image_url)
                     task.image_path = image_path
                     taskMapper.update_image_path(image_path, task.task_id)
         except CustomException as e:
@@ -312,8 +314,8 @@ def main():
 
     # 创建后台调度器
     scheduler = BackgroundScheduler()
-    scheduler.add_job(fetch_runway, 'interval', seconds=10 * 60, next_run_time=datetime.now())
-    scheduler.add_job(fetch_pika, 'interval', seconds=10 * 60, next_run_time=datetime.now())
+    # scheduler.add_job(fetch_runway, 'interval', seconds=10 * 60, next_run_time=datetime.now())
+    # scheduler.add_job(fetch_pika, 'interval', seconds=10 * 60, next_run_time=datetime.now())
 
     scheduler.add_job(callback_runway, 'interval', seconds=10)
     scheduler.add_job(execute_task, 'interval', seconds=60, next_run_time=datetime.now())
