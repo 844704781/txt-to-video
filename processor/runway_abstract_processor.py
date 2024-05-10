@@ -67,16 +67,19 @@ class RunWayAbstractParser(AbstractProcessor):
         p_tag = page.locator('.Text-sc-cweq7v-1.GetMoreCreditsButton__UnitsLeftText-sc-66lapz-0.fNdEQX')
         un_limit_tag = page.locator("xpath=//span[@class='Text__BaseText-sc-7ge0qa-0 eDDjVb']")
         count_text = None
-        try:
-            count_text = un_limit_tag.inner_text(timeout=30000)
-        except Exception as e:
-            pass
-        if count_text is None or len(count_text) == 0:
+        for i in range(1, 10):
             try:
-                count_text = p_tag.inner_text(timeout=3000)
+                count_text = un_limit_tag.inner_text(timeout=30000)
             except Exception as e:
-                logger.exception(e)
                 pass
+            if count_text is None or len(count_text) == 0:
+                try:
+                    count_text = p_tag.inner_text(timeout=30000)
+                except Exception as e:
+                    logger.exception(e)
+                    pass
+            if count_text is not None:
+                break
 
         count = extract_number(count_text)
         if count < 10:
