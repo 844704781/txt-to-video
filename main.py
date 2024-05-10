@@ -1,5 +1,7 @@
 import configparser
 import argparse
+import traceback
+
 from entity.iconfig_parser import ConfigParser
 from video_builder import VideoBuilder
 from entity.video_const import VideoConst
@@ -26,6 +28,7 @@ def install_chromium():
 
 
 def main():
+
     if not check_chromium_installed():
         logger.info("初次使用,环境准备中")
         install_chromium()
@@ -49,7 +52,7 @@ def main():
     img = args.image
 
     if service is None:
-        service = VideoConst.PIKA_MIX
+        service = VideoConst.RUN_WAY_MIX
 
     if service == VideoConst.PIKA_TXT \
             or service == VideoConst.PIKA_IMG \

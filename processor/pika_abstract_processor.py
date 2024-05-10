@@ -11,7 +11,6 @@ from common.custom_exception import CustomException
 from logger_config import logger
 
 
-
 class PikaAbstractProcessor(AbstractProcessor):
 
     def __init__(self, username, password, name, task_id: str = None):
@@ -86,9 +85,9 @@ class PikaAbstractProcessor(AbstractProcessor):
                 video = page.locator(
                     "xpath=//main//div[contains(@class,'group/card')][1]//div[@class='relative']//video/source")
                 try:
-                    link = video.get_attribute('src')
+                    link = video.get_attribute('src', timeout=10000)
                 except Exception as e:
-                    logger.error(self.name + "Something went wrong while generating this video")
+                    logger.exception(self.name + "获取视频链接出错", e)
                     link = None
                 break
             else:
@@ -96,7 +95,7 @@ class PikaAbstractProcessor(AbstractProcessor):
                 dasharray = progress_text.get_attribute('stroke-dasharray')
                 dashoffset = progress_text.get_attribute('stroke-dashoffset')
                 percent = 100 - float(dashoffset) / float(dasharray) * 100 // 1
-            time.sleep(1)
+            time.sleep(5)
         return link
 
     def get_seconds(self, page):

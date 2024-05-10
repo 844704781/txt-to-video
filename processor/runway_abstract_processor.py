@@ -107,7 +107,7 @@ class RunWayAbstractParser(AbstractProcessor):
                 progress_text = int(progress_text[:-1])
                 percent = 100 / 75 * progress_text // 1
             # 暂停一段时间再进行下一次检查
-            time.sleep(1)
+            time.sleep(5)
         return src_attribute
 
     @abstractmethod

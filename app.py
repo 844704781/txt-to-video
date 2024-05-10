@@ -87,7 +87,7 @@ def progress_callback(_task, _percent):
 
 # 跑任务
 def run_task(task):
-    logger.info(f"【{task.source}】Execute task start")
+    logger.debug(f"【{task.source}】Execute task start")
     if task.source == Source.PIKA:
         username = config['PIKA']['username']
         password = config['PIKA']['password']
@@ -115,13 +115,14 @@ def run_task(task):
         return ResultDo(e.code, e.message)
     except Exception as e:
         traceback.print_exc()
+        logger.exception(f"【{task.source}】Execute task end,error:", e)
         return ResultDo(ErrorCode.TIME_OUT, 'Video generation timed out.')
-    logger.info(f"【{task.source}】Execute task end")
+    logger.debug(f"【{task.source}】Execute task end")
     return ResultDo(code=ErrorCode.OK, data=video_url)
 
 
 def checking():
-    logger.info("checking...")
+    logger.debug("checking...")
     tasks = taskMapper.get_doing_tasks()
     for task in tasks:
         # 下次重试
@@ -159,7 +160,7 @@ def download_image(url):
         else:
             logger.error(f"Failed to download image from {url}: HTTP status code {response.status_code}")
     except Exception as e:
-        logger.error(f"Failed to download image from {url}: {e}")
+        logger.exception(f"Failed to download image from {url}",e)
         raise CustomException(ErrorCode.TIME_OUT, str(e))
 
 
@@ -221,12 +222,12 @@ def execute_task():
 
 
 def fetch(connector, source):
-    logger.info(f"【{source}】Get task")
+    logger.debug(f"【{source}】Get task")
     tasks = connector.fetch(1)
     for task in tasks:
         task['source'] = source
     taskMapper.bulk_insert_tasks(tasks)
-    logger.info(f"【{source}】Save task success")
+    logger.debug(f"【{source}】Save task success")
     # 执行爬取操作
     # 将爬取结果上传至对应接口
 
@@ -240,7 +241,7 @@ def fetch_pika():
 
 
 def _callback(connector, task):
-    logger.info(f"【{task.source}】Callback task")
+    logger.debug(f"【{task.source}】Callback task")
     payload = {
         "task_id": task.task_id,
         "progress": task.progress,
@@ -259,13 +260,13 @@ def _callback(connector, task):
         taskMapper.update_server_message(str(e), task.task_id)
         return
     taskMapper.set_synced_by_task_id(task.task_id)
-    logger.info(f"【{task.source}】Callback task Success")
+    logger.debug(f"【{task.source}】Callback task Success")
 
 
 def callback(connector, source):
     count = taskMapper.unsync_count(source)
     while count > 0:
-        logger.info(f"【{source}】UnSync task count :{count}")
+        logger.debug(f"【{source}】UnSync task count :{count}")
         task = taskMapper.find_unsync_task_by_source(source)
         if task is None:
             return

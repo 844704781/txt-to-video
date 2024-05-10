@@ -8,7 +8,6 @@ from typing import Optional, Callable
 from logger_config import logger
 
 
-
 class AbstractProcessor:
     def __init__(self, username, password, name, task_id: str = None):
         self.username = username
@@ -136,6 +135,7 @@ class AbstractProcessor:
 
                 logger.info(self.name + "url:\t{}", href)
             except Exception as e:
+                logger.exception(self.name + "playwright出错:", e)
                 raise e
             finally:
                 browser.close()
