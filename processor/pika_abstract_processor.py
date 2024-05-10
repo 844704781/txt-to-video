@@ -130,6 +130,10 @@ class PikaAbstractProcessor(AbstractProcessor):
         except Exception as e:
             pass
         count = extract_number(p_tag_text)
+
+        if self.balance_callback is not None:
+            self.balance_callback(self.username, count)
         if count < 10:
             raise CustomException(ErrorCode.INSUFFICIENT_BALANCE, f"当前余额:{count},余额不足,请充值")
+
         return count

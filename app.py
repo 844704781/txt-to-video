@@ -7,7 +7,11 @@ from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 from connector.runway_connector import RunwayConnector
 from connector.pika_connector import PikaConnector
-from db.taskdb import create_tables, is_table_created, TaskMapper, Source, sync_table_structure
+from db.taskdb import create_tables as create_task_tables, is_table_created as is_task_table_created, TaskMapper, \
+    Source as TaskSource, sync_table_structure as sync_task_table_structure
+
+from db.accountdb import create_tables as create_account_tables, is_table_created as is_account_table_created, \
+    Source as AccountSource, AccountMapper, sync_table_structure as sync_account_table_structure
 from entity.task_status import Status
 from entity.video_const import transfer
 from entity.result_utils import ResultDo
@@ -21,17 +25,19 @@ from logger_config import logger
 
 from common.custom_exception import CustomException
 from entity.task_make_type import MakeType
+from entity.account_status import AccountStatus
 import os
 import requests
 import random
 import string
 import argparse
 import subprocess
+import uuid
 
 runwayConnector = RunwayConnector()
 pikaConnector = PikaConnector()
 taskMapper = TaskMapper()
-
+accountMapper = AccountMapper()
 # scheduler_logger = logger.getLogger("apscheduler.executors.default")
 
 # scheduler_logger.setLevel(logger.CRITICAL)
@@ -56,11 +62,16 @@ videoThreadPool = concurrent.futures.ThreadPoolExecutor(max_workers=video_proces
 project_root = os.path.dirname(os.path.abspath(__file__))
 
 
+def get_worker_id():
+    mac_address = uuid.getnode()
+    return ':'.join(['{:02x}'.format((mac_address >> elements) & 0xff) for elements in range(0, 2 * 6, 2)][::-1])
+
+
 # 获取请求连接
 def get_connector(source):
-    if source == Source.PIKA:
+    if source == TaskSource.PIKA:
         connector = pikaConnector
-    elif source == Source.RUN_WAY:
+    elif source == TaskSource.RUN_WAY:
         connector = runwayConnector
     else:
         raise CustomException(ErrorCode.UNSUPPORTED, f'Unsupported source:{source}')
@@ -85,19 +96,53 @@ def progress_callback(_task, _percent):
     callbackThreadPool.submit(callback_func, _task, _percent)
 
 
-# 跑任务
-def run_task(task):
-    logger.debug(f"【{task.source}】Execute task start")
-    if task.source == Source.PIKA:
-        username = config['PIKA']['username']
-        password = config['PIKA']['password']
-    elif task.source == Source.RUN_WAY:
-        username = config['RUNWAY']['username']
-        password = config['RUNWAY']['password']
-    else:
-        raise CustomException(ErrorCode.UNSUPPORTED, f'Unsupported source {task.source}')
+def balance_callback(_source, _account, _count):
+    def callback_func(source, _account_no, count):
+        account = accountMapper.get_by_account_no(source, _account_no)
+        if account is None:
+            return
+        if count >= 10:
+            account_status = AccountStatus.NORMAL
+            reason = "余额充足"
+        else:
+            account_status = AccountStatus.DISABLED
+            reason = "余额不足(余额小于10)"
 
-    i_config = ConfigParser(username, password)
+        accountMapper.set_balance(account.id, account_status, reason, count)
+        payload = {
+            "account_no": account.account_no,
+            "status": account_status,
+            "balance": count,
+            "reason": reason
+        }
+        if source == AccountSource.PIKA:
+            pikaConnector.callback_account(payload)
+
+        elif source == AccountSource.RUN_WAY:
+            runwayConnector.callback_account(payload)
+
+        if count < 10:
+            fetch_account(source)
+
+    callbackThreadPool.submit(callback_func, _source, _account, _count)
+
+
+# 跑任务
+def run_task(task, account):
+    logger.debug(f"【{task.source}】Execute task start")
+
+    if account is not None:
+        i_config = ConfigParser(account.account_no, account.password)
+    else:
+        if task.source == TaskSource.PIKA:
+            username = config['PIKA']['username']
+            password = config['PIKA']['password']
+        elif task.source == TaskSource.RUN_WAY:
+            username = config['RUNWAY']['username']
+            password = config['RUNWAY']['password']
+        else:
+            raise CustomException(ErrorCode.UNSUPPORTED, f'Unsupported source {task.source}')
+        i_config = ConfigParser(username, password)
     service = transfer(task.source, task.make_type)
 
     processor = VideoBuilder.create() \
@@ -106,6 +151,7 @@ def run_task(task):
         .set_processor(service) \
         .set_task_id(task.task_id) \
         .progress_callback(lambda percent: progress_callback(task, percent)) \
+        .set_balance_callback(lambda _account, count: balance_callback(task.source, _account, count)) \
         .build()
 
     try:
@@ -164,10 +210,28 @@ def download_image(url):
         raise CustomException(ErrorCode.TIME_OUT, str(e))
 
 
-# 执行任务
-def execute_task():
-    def execute_task_func(task):
+# 获取账号
+def fetch_account(source):
+    account = accountMapper.get_random_normal_account(source)
+    if account is not None:
+        return account
+    else:
+        worker_id = get_worker_id()
+        accounts = None
+        if source == TaskSource.RUN_WAY:
+            accounts = runwayConnector.fetch_accounts(worker_id)
+        elif source == TaskSource.PIKA:
+            accounts = pikaConnector.fetch_accounts(worker_id)
+        else:
+            pass
+        for account in accounts:
+            account.source = source
+        accountMapper.bulk_insert_tasks(accounts)
+        return accountMapper.get_random_normal_account(source)
 
+
+def execute_task():
+    def execute_task_func(task, _account):
         try:
             # 处理图片,如果图片未下载，则将其下载直本地
             if task.image_path is None or len(task.image_path) == 0 \
@@ -192,7 +256,7 @@ def execute_task():
             logger.debug(f"将task设置为doing状态,task_id:{task.task_id}")
             _callback(get_connector(task.source), task)
 
-            execute_result = run_task(task)
+            execute_result = run_task(task, _account)
 
             if execute_result.code == 0:
                 # 成功
@@ -218,7 +282,8 @@ def execute_task():
     if len(tasks) == 0:
         logger.info('All tasks have been completed!!!')
     for _task in tasks:
-        videoThreadPool.submit(execute_task_func, _task)
+        account = fetch_account(_task.source)
+        videoThreadPool.submit(execute_task_func, _task, account)
         time.sleep(10)
 
 
@@ -238,11 +303,11 @@ def fetch(connector, source):
 
 
 def fetch_runway():
-    fetch(runwayConnector, Source.RUN_WAY)
+    fetch(runwayConnector, TaskSource.RUN_WAY)
 
 
 def fetch_pika():
-    fetch(pikaConnector, Source.PIKA)
+    fetch(pikaConnector, TaskSource.PIKA)
 
 
 def _callback(connector, task):
@@ -281,11 +346,11 @@ def callback(connector, source):
 
 
 def callback_runway():
-    callback(runwayConnector, Source.RUN_WAY)
+    callback(runwayConnector, TaskSource.RUN_WAY)
 
 
 def callback_pika():
-    callback(pikaConnector, Source.PIKA)
+    callback(pikaConnector, TaskSource.PIKA)
 
 
 def check_chromium_installed():
@@ -305,15 +370,20 @@ def install_chromium():
 
 def main():
     logger.info("初始化中...")
+    logger.info(f"当前worker_id:{get_worker_id()}")
     # 在项目第一次启动时创建表
-    if not is_table_created():
-        create_tables()
+    if not is_task_table_created():
+        create_task_tables()
+    if not is_account_table_created():
+        create_account_tables()
+
     if not check_chromium_installed():
         logger.info("初次使用,环境准备中")
         install_chromium()
         logger.info("准备完成")
 
-    sync_table_structure()
+    sync_task_table_structure()
+    sync_account_table_structure()
     checking()
     logger.info("初始化成功")
 

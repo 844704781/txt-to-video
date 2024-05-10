@@ -1,16 +1,9 @@
 import peewee
 import datetime
-from playhouse.pool import PooledSqliteDatabase
 from entity.task_status import Status
 from entity.task_make_type import MakeType
-import os
 from logger_config import logger
-
-current_dir = os.path.dirname(__file__)
-project_root = os.path.abspath(os.path.join(current_dir, ".."))
-
-# 配置数据库连接池
-database = PooledSqliteDatabase(project_root + '/task.db', max_connections=500, check_same_thread=False)
+from db.pool import database
 
 
 # 定义模型类

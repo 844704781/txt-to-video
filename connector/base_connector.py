@@ -8,6 +8,7 @@ import os
 from logger_config import logger
 
 from common.custom_exception import CustomException
+
 '''
 针对下面服务器接口的基类
 https://ct4.dianbaobao.com
@@ -51,7 +52,7 @@ class BaseConnector:
         logger.debug("签名数据:" + param_str)
         md5_hash = hashlib.md5(param_str.encode()).hexdigest()
         return md5_hash
-    
+
     def post(self, uri, payload):
         logger.debug("-" * 50)
         url = self.__base_url + uri

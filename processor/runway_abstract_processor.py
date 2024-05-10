@@ -87,8 +87,11 @@ class RunWayAbstractParser(AbstractProcessor):
         if count_text is None:
             raise CustomException(ErrorCode.TIME_OUT, "余额无法获取")
         count = extract_number(count_text)
+        if self.balance_callback is not None:
+            self.balance_callback(self.username, count)
         if count < 10:
             raise CustomException(ErrorCode.INSUFFICIENT_BALANCE, f"当前余额:{count},余额不足,请充值")
+
         return count
 
     def loading(self, page):

@@ -20,6 +20,7 @@ class AbstractProcessor:
         self.task_id = task_id
         self.const = name
         self.progress_callback = None
+        self.balance_callback = None
         if 'RUN_WAY' in self.const:
             self.source = 'RUNWAY'
         elif 'PIKA' in self.const:
@@ -30,6 +31,10 @@ class AbstractProcessor:
 
     def set_progress_callback(self, progress_callback: object = None):
         self.progress_callback = progress_callback
+        return self
+
+    def set_balance_callback(self, balance_callback: object = None):
+        self.balance_callback = balance_callback
         return self
 
     def set_form(self, content, image):
@@ -129,7 +134,7 @@ class AbstractProcessor:
                     #       ],
                     headless=True)
 
-                cookies = os.path.join('cookies', f'{self.source}-state.json')
+                cookies = os.path.join('cookies', f'{self.source}-{self.username}-state.json')
                 logger.info(self.name + "判断是否登录")
                 if os.path.exists(cookies):
                     # 使用之前的登录信息
