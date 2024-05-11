@@ -147,8 +147,6 @@ class RunWayAbstractParser(AbstractProcessor):
 
     def commit(self, page):
         # 点击按钮
-        generate_button = page.locator(
-            "xpath=//button[contains(@class,'ExploreModeGenerateButton__Button-sc-ny02we-0')]")
 
         generate_button = page.locator('button:has-text("Generate 4s")')
         err = None
@@ -159,6 +157,8 @@ class RunWayAbstractParser(AbstractProcessor):
         if err is not None:
             i = 0
             num = 10
+            generate_button = page.locator(
+                "xpath=//button[contains(@class,'ExploreModeGenerateButton__Button-sc-ny02we-0')]")
             while i < num:
                 logger.info(self.name + f"尝试获取点击按钮，剩余尝试次数:\t{num - i}")
                 disabled = generate_button.evaluate('(element) => element.disabled')
