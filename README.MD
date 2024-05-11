@@ -72,7 +72,10 @@ password = zsLe.nz!DU2zKdY
 username = v2.0@qq.com
 password = Abc234!!
 ```
-
+## 执行启动程序
+```shell
+python app.py
+```
 
 2.执行
 ```shell
