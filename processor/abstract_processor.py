@@ -21,6 +21,7 @@ class AbstractProcessor:
         self.const = name
         self.progress_callback = None
         self.balance_callback = None
+        self.check_task_callback = None
         if 'RUN_WAY' in self.const:
             self.source = 'RUNWAY'
         elif 'PIKA' in self.const:
@@ -28,6 +29,10 @@ class AbstractProcessor:
         else:
             # nothing...
             pass
+
+    def set_check_task_callback(self, check_task_callback: object = None):
+        self.check_task_callback = check_task_callback
+        return self
 
     def set_progress_callback(self, progress_callback: object = None):
         self.progress_callback = progress_callback
@@ -108,6 +113,11 @@ class AbstractProcessor:
         pass
 
     def run(self):
+        if self.check_task_callback is not None and self.task_id is not None:
+            if not self.check_task_callback(self.task_id):
+                logger.info(f"{self.name}任务已完成或任务正在执行")
+                return
+
         if self.const in [VideoConst.PIKA_TXT, VideoConst.PIKA_MIX,
                           VideoConst.RUN_WAY_TXT, VideoConst.RUN_WAY_MIX]:
             if len(self.content) < 256:

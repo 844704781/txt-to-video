@@ -134,6 +134,15 @@ def balance_callback(_source, _account, _count: int = None, _message: str = None
     callbackThreadPool.submit(callback_func, _source, _account, _count, _message)
 
 
+def check_task_callback(task_id):
+    task = taskMapper.get(task_id)
+    if task is None:
+        return False
+    if task.status == Status.DOING.value or task.status == Status.SUCCESS.value:
+        return False
+    return True
+
+
 # 跑任务
 def run_task(task, account: object = None):
     logger.debug(f"【{task.source}】Execute task start")
@@ -162,7 +171,7 @@ def run_task(task, account: object = None):
         .progress_callback(lambda percent: progress_callback(task, percent)) \
         .set_balance_callback(
         lambda _account, _count, _message: balance_callback(task.source, _account, _count, _message)
-    ).build()
+    ).set_check_task_callback(check_task_callback).build()
 
     try:
         video_url = processor.run()
