@@ -262,7 +262,18 @@ def fetch_account(source):
 
 
 def is_threadpool_idle(threadpool):
-    return threadpool._work_queue.qsize() == 0 and (threadpool._threads is None or len(threadpool._threads) == 0)
+    thread_count = threadpool._max_workers
+    # 获取线程池中的所有线程
+    all_threads = videoThreadPool._threads
+    # 获取正在使用的线程数
+    active_threads = sum(1 for thread in all_threads if thread.is_alive())
+    message = f"总线程数:{thread_count},活跃线程数:{active_threads}"
+    if active_threads >= thread_count:
+        message = message + ',线程池忙碌中...'
+    else:
+        message = message + ',有可用线程...'
+    logger.info(message)
+    return active_threads < thread_count
 
 
 def execute_task():
@@ -315,7 +326,7 @@ def execute_task():
             logger.exception(e)
             raise e
 
-    tasks = taskMapper.get_executable_tasks(10)
+    tasks = taskMapper.get_executable_tasks(video_processor_thread_count)
     if len(tasks) == 0:
         logger.info('All tasks have been completed!!!')
     for _task in tasks:
@@ -324,8 +335,6 @@ def execute_task():
             account = fetch_account(_task.source)
             taskMapper.set_status(_task.task_id, Status.DOING.value)
             videoThreadPool.submit(execute_task_func, _task, account)
-        else:
-            logger.info("线程池忙碌，无可用线程")
         time.sleep(10)
 
 
