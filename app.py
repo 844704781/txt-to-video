@@ -468,7 +468,7 @@ def main():
     scheduler.add_job(fetch_pika, 'interval', seconds=10, next_run_time=datetime.now())
 
     scheduler.add_job(callback_runway, 'interval', seconds=10)
-    scheduler.add_job(execute_task, 'interval', seconds=60, next_run_time=datetime.now())
+    scheduler.add_job(execute_task, 'interval', seconds=10, next_run_time=datetime.now())
     scheduler.start()
 
     event = threading.Event()
