@@ -330,11 +330,10 @@ def execute_task():
     if len(tasks) == 0:
         logger.info('All tasks have been completed!!!')
     for _task in tasks:
-
-        if is_threadpool_idle(videoThreadPool):
-            account = fetch_account(_task.source)
-            taskMapper.set_status(_task.task_id, Status.DOING.value)
-            videoThreadPool.submit(execute_task_func, _task, account)
+        is_threadpool_idle(videoThreadPool)
+        account = fetch_account(_task.source)
+        taskMapper.set_status(_task.task_id, Status.DOING.value)
+        videoThreadPool.submit(execute_task_func, _task, account)
         time.sleep(10)
 
 
