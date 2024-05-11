@@ -23,7 +23,7 @@ class RunwayConnector(BaseConnector):
         """
         uri = '/openapi/job/runway/fetch'
         payload = {
-            num: num
+            "num": num
         }
         resp = self.post(uri, payload)
         if resp.get('code') != 0:
