@@ -272,7 +272,7 @@ def is_threadpool_idle(threadpool):
         message = message + ',线程池忙碌中...'
     else:
         message = message + ',有可用线程...'
-    logger.info(message)
+    logger.debug(message)
     return active_threads < thread_count
 
 
