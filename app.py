@@ -152,8 +152,8 @@ def check_task(task):
         if task.image_path is None or len(task.image_path.strip()) == 0:
             return False
     else:
-        if task.image_path is None or len(task.image_path.strip()) == 0 or task.prompt is None or len(
-                task.prompt.strip()) == 0:
+        if (task.image_path is None or len(task.image_path.strip()) == 0) and (task.prompt is None or len(
+                task.prompt.strip()) == 0):
             return False
     return True
 
@@ -373,6 +373,7 @@ def fetch(connector, source):
     taskMapper.bulk_insert_tasks(tasks)
     logger.debug(f"【{source}】Save task success")
     # 执行爬取操作
+    execute_task()
     # 将爬取结果上传至对应接口
 
 
