@@ -56,6 +56,10 @@ password = zsLe.nz!DU2zKdY
 username = v2.0@qq.com
 password = Abc234!!
 ```
+## 执行启动程序
+```shell
+python app.py
+```
 
 ## 命令行操作(常用于测试)
 
@@ -71,10 +75,6 @@ password = zsLe.nz!DU2zKdY
 #本地账号
 username = v2.0@qq.com
 password = Abc234!!
-```
-## 执行启动程序
-```shell
-python app.py
 ```
 
 2.执行
