@@ -95,7 +95,10 @@ class AbstractProcessor:
         num_blocks = int(percent // 2)
         bar_length = 50
         progress = '|' + '■' * num_blocks + ' ' * (bar_length - num_blocks) + '|' + str(percent) + "%"
-        logger.info(f'{self.name} {progress}')
+        if self.task_id is not None:
+            logger.info(f'{self.name} {progress}')
+        else:
+            print(f'\r{self.name} {progress}', end='', flush=True)
         if self.progress_callback is not None:
             self.progress_callback(percent)
 
