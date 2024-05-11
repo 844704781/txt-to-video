@@ -261,6 +261,10 @@ def fetch_account(source):
         return account
 
 
+def is_threadpool_idle(threadpool):
+    return threadpool._work_queue.qsize() == 0 and (threadpool._threads is None or len(threadpool._threads) == 0)
+
+
 def execute_task():
     def execute_task_func(task, _account):
         try:
@@ -295,7 +299,9 @@ def execute_task():
                 task.video_url = execute_result.data
                 taskMapper.set_success(task.task_id, video_url=execute_result.data)
                 _callback(get_connector(task.source), task)
-
+            elif execute_result.code == ErrorCode.TASK_COMPLETED:
+                # 任务已完成，什么都不需要做
+                pass
             else:
                 # 失败
                 task.status = Status.FAIL.value
@@ -313,8 +319,13 @@ def execute_task():
     if len(tasks) == 0:
         logger.info('All tasks have been completed!!!')
     for _task in tasks:
-        account = fetch_account(_task.source)
-        videoThreadPool.submit(execute_task_func, _task, account)
+
+        if is_threadpool_idle(videoThreadPool):
+            account = fetch_account(_task.source)
+            taskMapper.set_status(_task.task_id, Status.DOING.value)
+            videoThreadPool.submit(execute_task_func, _task, account)
+        else:
+            logger.info("线程池忙碌，无可用线程")
         time.sleep(10)
 
 

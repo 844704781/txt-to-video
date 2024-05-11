@@ -6,6 +6,8 @@ from entity.video_const import VideoConst
 from typing import Optional, Callable
 
 from logger_config import logger
+from common.custom_exception import CustomException
+from entity.error_code import ErrorCode
 
 
 class AbstractProcessor:
@@ -86,6 +88,10 @@ class AbstractProcessor:
         :param percent:
         :return:
         """
+        if self.check_task_callback is not None and self.task_id is not None:
+            if not self.check_task_callback(self.task_id):
+                logger.info(f"{self.name}任务已完成")
+                raise CustomException(ErrorCode.TASK_COMPLETED, "任务已完成")
         num_blocks = int(percent // 2)
         bar_length = 50
         progress = '|' + '■' * num_blocks + ' ' * (bar_length - num_blocks) + '|' + str(percent) + "%"
@@ -188,6 +194,9 @@ class AbstractProcessor:
                 href = self.loading(page)
 
                 logger.info(self.name + "url:\t{}", href)
+            except CustomException as e:
+                logger.error(self.name + f"{e}")
+                raise e
             except Exception as e:
                 logger.exception(self.name + "playwright出错:", e)
                 raise e

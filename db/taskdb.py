@@ -119,8 +119,7 @@ class TaskMapper:
     def unsync_count(source):
         return Task.select().where((Task.source == source) & (Task.status_is_sync == 0)).count()
 
-    @staticmethod
-    def get_executable_tasks(size):
+    def get_executable_tasks(self, size):
         """
         获取可执行的任务
         优先获取刚创建的任务，其次获取失败的任务
@@ -146,7 +145,6 @@ class TaskMapper:
         # if remaining_size > 0:
         #     fail_tasks = Task.select().where(Task.status == Status.DOING).limit(remaining_size)
         #     executable_tasks.extend(fail_tasks)
-
         return executable_tasks
 
     @staticmethod
