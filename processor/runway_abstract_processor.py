@@ -153,7 +153,7 @@ class RunWayAbstractParser(AbstractProcessor):
             disabled = generate_button.evaluate('(element) => element.disabled')
             if not disabled:
                 break
-            logger.debug(f"当前{disabled}")
+            # logger.debug(f"当前{disabled}")
             time.sleep(1)
 
         # generate_button = page.locator('button:has-text("Generate 4s")')

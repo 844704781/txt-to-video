@@ -138,7 +138,7 @@ def check_task_callback(task_id):
     task = taskMapper.get(task_id)
     if task is None:
         return False
-    if task.status == Status.DOING.value or task.status == Status.SUCCESS.value:
+    if task.status == Status.SUCCESS.value:
         return False
     return True
 
@@ -168,7 +168,8 @@ def run_task(task, account: object = None):
         .set_form(task.prompt, task.image_path) \
         .set_processor(service) \
         .set_task_id(task.task_id) \
-        .progress_callback(lambda percent: progress_callback(task, percent)) \
+        .progress_callback(lambda percent:
+                                           progress_callback(task, percent)) \
         .set_balance_callback(
         lambda _account, _count, _message: balance_callback(task.source, _account, _count, _message)
     ).set_check_task_callback(check_task_callback).build()

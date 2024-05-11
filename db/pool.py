@@ -1,4 +1,5 @@
 from playhouse.pool import PooledSqliteDatabase
+from logger_config import logger
 
 import os
 

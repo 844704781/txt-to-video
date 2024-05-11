@@ -70,38 +70,38 @@ class VideoBuilder:
 
             return RunWayTxtParser(self.config.username, self.config.password, VideoConst.RUN_WAY_TXT, self._task_id) \
                 .set_form(self._content, self._image).set_progress_callback(
-                self._progress_callback).set_balance_callback(self._balance_callback).set_progress_callback(
+                self._progress_callback).set_balance_callback(self._balance_callback).set_check_task_callback(
                 self._check_task_callback)
         elif self.video == VideoConst.RUN_WAY_IMG:
 
             return RunWayImgParser(self.config.username, self.config.password, VideoConst.RUN_WAY_TXT, self._task_id) \
                 .set_form(self._content, self._image).set_progress_callback(
-                self._progress_callback).set_balance_callback(self._balance_callback).set_progress_callback(
+                self._progress_callback).set_balance_callback(self._balance_callback).set_check_task_callback(
                 self._check_task_callback)
         elif self.video == VideoConst.RUN_WAY_MIX:
 
             return RunWayMixParser(self.config.username, self.config.password, VideoConst.RUN_WAY_MIX, self._task_id) \
                 .set_form(self._content, self._image).set_progress_callback(
-                self._progress_callback).set_balance_callback(self._balance_callback).set_progress_callback(
+                self._progress_callback).set_balance_callback(self._balance_callback).set_check_task_callback(
                 self._check_task_callback)
         elif self.video == VideoConst.PIKA_TXT:
 
             return PikaTxtAbstractProcessor(self.config.username, self.config.password, VideoConst.PIKA_TXT,
                                             self._task_id) \
                 .set_form(self._content, self._image).set_progress_callback(
-                self._progress_callback).set_balance_callback(self._balance_callback).set_progress_callback(
+                self._progress_callback).set_balance_callback(self._balance_callback).set_check_task_callback(
                 self._check_task_callback)
         elif self.video == VideoConst.PIKA_IMG:
 
             return PikaImgProcessor(self.config.username, self.config.password, VideoConst.PIKA_IMG, self._task_id) \
                 .set_form(self._content, self._image).set_progress_callback(
-                self._progress_callback).set_balance_callback(self._balance_callback).set_progress_callback(
+                self._progress_callback).set_balance_callback(self._balance_callback).set_check_task_callback(
                 self._check_task_callback)
         elif self.video == VideoConst.PIKA_MIX:
 
             return PikaMixProcessor(self.config.username, self.config.password, VideoConst.PIKA_MIX, self._task_id) \
                 .set_form(self._content, self._image).set_progress_callback(
-                self._progress_callback).set_balance_callback(self._balance_callback).set_progress_callback(
+                self._progress_callback).set_balance_callback(self._balance_callback).set_check_task_callback(
                 self._check_task_callback)
         else:
             raise Exception("无效的VideoProcessor")

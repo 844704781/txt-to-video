@@ -115,7 +115,7 @@ class AbstractProcessor:
     def run(self):
         if self.check_task_callback is not None and self.task_id is not None:
             if not self.check_task_callback(self.task_id):
-                logger.info(f"{self.name}任务已完成或任务正在执行")
+                logger.info(f"{self.name}任务已完成")
                 return
 
         if self.const in [VideoConst.PIKA_TXT, VideoConst.PIKA_MIX,
