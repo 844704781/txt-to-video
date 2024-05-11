@@ -146,13 +146,14 @@ def check_task_callback(task_id):
 
 def check_task(task):
     if task.make_type == MakeType.TEXT:
-        if task.prompt is None or task.prompt.strip():
+        if task.prompt is None or len(task.prompt.strip()) == 0:
             return False
     elif task.make_type == MakeType.IMAGE:
-        if task.image_path is None or task.image_path.strip():
+        if task.image_path is None or len(task.image_path.strip()) == 0:
             return False
     else:
-        if task.image_path is None or task.image_path.strip() or task.prompt is None or task.prompt.strip():
+        if task.image_path is None or len(task.image_path.strip()) == 0 or task.prompt is None or len(
+                task.prompt.strip()) == 0:
             return False
     return True
 
