@@ -365,6 +365,11 @@ def fetch(connector, source):
     tasks = connector.fetch(50)
     for task in tasks:
         task['source'] = source
+        if not check_task(task):
+            logger.info(f"遇到无效任务,无视中...,task:{task}")
+            continue
+    if len(tasks) == 0:
+        return
     taskMapper.bulk_insert_tasks(tasks)
     logger.debug(f"【{source}】Save task success")
     # 执行爬取操作
