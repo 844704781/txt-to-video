@@ -37,6 +37,13 @@ class Task(BaseModel):
     create_time = peewee.IntegerField(default=int(datetime.datetime.now().timestamp()))
     update_time = peewee.IntegerField(default=int(datetime.datetime.now().timestamp()))
 
+    def __str__(self):
+        return f"Task(id={self.id}, task_id={self.task_id}, source={self.source}, make_type={self.make_type}, " \
+               f"prompt={self.prompt}, image_url={self.image_url}, image_path={self.image_path}, " \
+               f"progress={self.progress}, status={self.status}, status_is_sync={self.status_is_sync}, " \
+               f"message={self.message}, err_code={self.err_code}, server_message={self.server_message}, " \
+               f"video_url={self.video_url}, create_time={self.create_time}, update_time={self.update_time})"
+
 
 # 检查模型类与数据库表结构的差异，并更新数据库表
 def sync_table_structure():
@@ -256,6 +263,12 @@ class TaskMapper:
     @staticmethod
     def get_un_success_count():
         return Task.select().where((Task.status != Status.SUCCESS)).count()
+
+    @staticmethod
+    def remove(_id):
+        # 计算要删除的任务数
+        count = Task.delete().where((Task.status != Status.SUCCESS) & (Task.id == _id)).execute()
+        return count
 
 
 # 创建表

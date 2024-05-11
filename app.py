@@ -144,6 +144,19 @@ def check_task_callback(task_id):
     return True
 
 
+def check_task(task):
+    if task.make_type == MakeType.TEXT:
+        if task.prompt is None or task.prompt.strip():
+            return False
+    elif task.make_type == MakeType.IMAGE:
+        if task.image_path is None or task.image_path.strip():
+            return False
+    else:
+        if task.image_path is None or task.image_path.strip() or task.prompt is None or task.prompt.strip():
+            return False
+    return True
+
+
 # 跑任务
 def run_task(task, account: object = None):
     logger.debug(f"【{task.source}】Execute task start")
@@ -293,6 +306,11 @@ def execute_task():
         except Exception as e:
             logger.exception(e)
             taskMapper.set_fail(task.task_id, ErrorCode.UNKNOWN, str(e))
+            return
+
+        if not check_task(task):
+            logger.info(f"遇到无效任务,删除中...,task:{task}")
+            taskMapper.remove(task.id)
             return
 
         try:
