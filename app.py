@@ -120,6 +120,7 @@ def balance_callback(_source, _account, _count: int = None, _message: str = None
             "balance": count,
             "reason": reason
         }
+        logger.info("更新账号信息到服务器", payload)
         if source == AccountSource.PIKA:
             pikaConnector.callback_account(payload)
 
@@ -169,7 +170,7 @@ def run_task(task, account: object = None):
         .set_processor(service) \
         .set_task_id(task.task_id) \
         .progress_callback(lambda percent:
-                                           progress_callback(task, percent)) \
+                           progress_callback(task, percent)) \
         .set_balance_callback(
         lambda _account, _count, _message: balance_callback(task.source, _account, _count, _message)
     ).set_check_task_callback(check_task_callback).build()
