@@ -371,18 +371,24 @@ def fetch(connector, source):
     if len(tasks) == 0:
         return
     taskMapper.bulk_insert_tasks(tasks)
-    logger.debug(f"【{source}】Save task success")
+    logger.debug(f"【{source}】Save task success,task count:{len(tasks)}")
     # 执行爬取操作
     execute_task()
     # 将爬取结果上传至对应接口
 
 
 def fetch_runway():
-    fetch(runwayConnector, TaskSource.RUN_WAY)
+    try:
+        fetch(runwayConnector, TaskSource.RUN_WAY)
+    except Exception as e:
+        logger.exception(e)
 
 
 def fetch_pika():
-    fetch(pikaConnector, TaskSource.PIKA)
+    try:
+        fetch(pikaConnector, TaskSource.PIKA)
+    except Exception as e:
+        logger.exception(e)
 
 
 def _callback(connector, task):
