@@ -362,12 +362,12 @@ def fetch(connector, source):
         # 还有没做完的任务，先不取，或许被其它节点取了?
         return
     logger.debug(f"【{source}】Get task")
-    tasks = connector.fetch(50)
-    # for task in tasks:
-    #     task['source'] = source
-    #     if not check_task(task):
-    #         logger.info(f"遇到无效任务,无视中...,task:{task}")
-    #         continue
+    tasks = connector.fetch(1)
+    for task in tasks:
+        task['source'] = source
+        # if not check_task(task):
+        #     logger.info(f"遇到无效任务,无视中...,task:{task}")
+        #     continue
     if len(tasks) == 0:
         return
     taskMapper.bulk_insert_tasks(tasks)

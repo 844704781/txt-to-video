@@ -20,7 +20,7 @@ class Source:
 # 定义 Task 表模型
 class Task(BaseModel):
     id = peewee.AutoField(primary_key=True)
-    task_id = peewee.IntegerField(unique=True)
+    task_id = peewee.CharField(unique=True)
     source = peewee.CharField(choices=[(Source.RUN_WAY, Source.RUN_WAY), (Source.PIKA, Source.PIKA)], null=False)
     make_type = peewee.CharField(choices=[(MakeType.TEXT, 'text'), (MakeType.IMAGE, 'image'), (MakeType.MIX, 'mix')],
                                  default=MakeType.TEXT)

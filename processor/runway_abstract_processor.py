@@ -129,7 +129,7 @@ class RunWayAbstractParser(AbstractProcessor):
                 break
             else:
                 # 获取文本内容
-                element_locator = page.locator('.ProgressRing__CircleText-sc-1ed2gw0-3.jBjiPh')  # 使用你提供的类名选择器
+                element_locator = page.locator('.ProgressBar__percentage__o2hVF')  # 使用你提供的类名选择器
                 try:
                     progress_text = element_locator.inner_html()
                 except Exception as e:
