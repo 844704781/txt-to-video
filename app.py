@@ -362,7 +362,7 @@ def fetch(connector, source):
         # 还有没做完的任务，先不取，或许被其它节点取了?
         return
     logger.debug(f"【{source}】Get task")
-    tasks = connector.fetch(1)
+    tasks = connector.fetch(10)
     for task in tasks:
         task['source'] = source
         # if not check_task(task):
