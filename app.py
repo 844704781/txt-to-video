@@ -203,8 +203,9 @@ def run_task(task, account: object = None):
     logger.debug(f"【{task.source}】Execute task end")
 
     # 1. 下载视频到本地，得到本地的video_path
-    file_name = download_video(video_url)
+    video_path = download_video(video_url)
     # 2. 将其上传到oss,构建oss的video_url
+    file_name = video_path.replace("resource/videos/", "")
     video_url = baseConnector.upload(file_name)
     return ResultDo(code=ErrorCode.OK, data=video_url)
 
