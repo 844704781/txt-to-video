@@ -6,6 +6,7 @@ from playwright.sync_api import sync_playwright
 from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 from connector.runway_connector import RunwayConnector
+from connector.base_connector import BaseConnector
 from connector.pika_connector import PikaConnector
 from db.taskdb import create_tables as create_task_tables, is_table_created as is_task_table_created, TaskMapper, \
     Source as TaskSource, sync_table_structure as sync_task_table_structure
@@ -26,6 +27,7 @@ from logger_config import logger
 from common.custom_exception import CustomException
 from entity.task_make_type import MakeType
 from entity.account_status import AccountStatus
+from settings import PROJECT_ROOT
 import os
 import requests
 import random
@@ -34,6 +36,7 @@ import argparse
 import subprocess
 import uuid
 
+baseConnector = BaseConnector()
 runwayConnector = RunwayConnector()
 pikaConnector = PikaConnector()
 taskMapper = TaskMapper()
@@ -198,6 +201,11 @@ def run_task(task, account: object = None):
         logger.exception(f"【{task.source}】Execute task end,error:", e)
         return ResultDo(ErrorCode.TIME_OUT, 'Video generation timed out.')
     logger.debug(f"【{task.source}】Execute task end")
+
+    # 1. 下载视频到本地，得到本地的video_path
+    file_name = download_video(video_url)
+    # 2. 将其上传到oss,构建oss的video_url
+    video_url = baseConnector.upload(file_name)
     return ResultDo(code=ErrorCode.OK, data=video_url)
 
 
@@ -209,18 +217,17 @@ def checking():
         taskMapper.set_status(task.task_id, Status.FAIL)
 
 
-# 下载图片
-def download_image(url):
+def download(url, _dir):
     # TODO test...
     def generate_hash_filename(content):
         """根据文件内容的哈希值生成文件名"""
         hash_value = hashlib.sha256(content).hexdigest()
         return hash_value.lower()
 
-    images_dir = os.path.join(project_root, 'images')
-    if not os.path.exists(images_dir):
-        os.makedirs(images_dir)
-    images_dir = os.path.relpath(images_dir, project_root)
+    work_dir = os.path.join(PROJECT_ROOT, _dir)
+    if not os.path.exists(work_dir):
+        os.makedirs(work_dir)
+    work_dir = os.path.relpath(work_dir, PROJECT_ROOT)
     # 发送 GET 请求获取图片
     try:
         response = requests.get(url)
@@ -231,18 +238,28 @@ def download_image(url):
 
             # 根据文件内容的哈希值生成文件名
             hash_filename = generate_hash_filename(response.content)
-            filename = os.path.join(images_dir, f"{hash_filename}.{image_extension}")
-
+            filename = os.path.join(work_dir, f"{hash_filename}.{image_extension}")
+            if os.path.exists(filename):
+                return filename
             # 保存图片到本地
             with open(filename, 'wb') as f:
                 f.write(response.content)
-            logger.debug(f"Image downloaded successfully: {filename}")
+            logger.debug(f"downloaded successfully: {filename}")
             return filename
         else:
-            logger.error(f"Failed to download image from {url}: HTTP status code {response.status_code}")
+            logger.error(f"Failed to download from {url}: HTTP status code {response.status_code}")
     except Exception as e:
-        logger.exception(f"Failed to download image from {url}", e)
+        logger.exception(f"Failed to download from {url}", e)
         raise CustomException(ErrorCode.TIME_OUT, str(e))
+
+
+# 下载图片
+def download_image(url):
+    return download(url, 'images')
+
+
+def download_video(url):
+    return download(url, 'resource/videos')
 
 
 # 获取账号
