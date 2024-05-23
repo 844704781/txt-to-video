@@ -68,13 +68,13 @@ config.ini:
 ```text
 [RUNWAY]
 #本地账号
-username = v2v2
-password = zsLe.nz!DU2zKdY
+username = 
+password = 
 
 [PIKA]
 #本地账号
-username = v2.0@qq.com
-password = Abc234!!
+username = 
+password = 
 ```
 
 2.执行
