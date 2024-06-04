@@ -49,13 +49,13 @@ config.ini:
 ```text
 [RUNWAY]
 #本地账号
-username = v2v2
-password = zsLe.nz!DU2zKdY
+username = xxx
+password = xxx
 
 [PIKA]
 #本地账号
-username = v2.0@qq.com
-password = Abc234!!
+username = xxx
+password = xxx
 ```
 ## 执行启动程序
 ```shell
