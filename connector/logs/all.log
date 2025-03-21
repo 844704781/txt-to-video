@@ -1,0 +1,21 @@
+2024-05-10 20:03:57.771 | DEBUG    | 28338:4456904192 | connector.base_connector:post:57 - --------------------------------------------------
+2024-05-10 20:03:57.772 | DEBUG    | 28338:4456904192 | connector.base_connector:post:59 - 请求地址:https://ct4.dianbaobao.com/openapi/account/pika/fetch
+2024-05-10 20:03:57.773 | DEBUG    | 28338:4456904192 | connector.base_connector:__generate_md5_signature:52 - 签名数据:worker_id=11715342637ygy@sm$*nvfbqwe@pwnwtmoawbquf4!irmtcqbnc6r4y&wsjt%%w5apwccma^37p
+2024-05-10 20:03:57.773 | DEBUG    | 28338:4456904192 | connector.base_connector:post:70 - 请求header:{'Content-Type': 'application/json', 'x-timestamp': '1715342637', 'x-pid': '541000231', 'x-sign': 'f903dd1b6be1fc15b7ff0849604b6d16'}
+2024-05-10 20:03:57.774 | DEBUG    | 28338:4456904192 | connector.base_connector:post:71 - 请求参数:{'worker_id': '1'}
+2024-05-10 20:03:57.931 | DEBUG    | 28338:4456904192 | connector.base_connector:post:74 - 请求响应:{"code":0,"message":"操作成功OK","data":[],"isSuccess":true}
+2024-05-10 20:03:57.931 | DEBUG    | 28338:4456904192 | connector.base_connector:post:75 - --------------------------------------------------
+2024-05-10 20:05:06.614 | DEBUG    | 28371:4500633088 | connector.base_connector:post:57 - --------------------------------------------------
+2024-05-10 20:05:06.615 | DEBUG    | 28371:4500633088 | connector.base_connector:post:59 - 请求地址:https://ct4.dianbaobao.com/openapi/account/pika/fetch
+2024-05-10 20:05:06.615 | DEBUG    | 28371:4500633088 | connector.base_connector:__generate_md5_signature:52 - 签名数据:worker_id=11715342706ygy@sm$*nvfbqwe@pwnwtmoawbquf4!irmtcqbnc6r4y&wsjt%%w5apwccma^37p
+2024-05-10 20:05:06.615 | DEBUG    | 28371:4500633088 | connector.base_connector:post:70 - 请求header:{'Content-Type': 'application/json', 'x-timestamp': '1715342706', 'x-pid': '541000231', 'x-sign': '0028348c49eb1cfb8d7988a9cbe4a55d'}
+2024-05-10 20:05:06.616 | DEBUG    | 28371:4500633088 | connector.base_connector:post:71 - 请求参数:{'worker_id': '1'}
+2024-05-10 20:05:06.754 | DEBUG    | 28371:4500633088 | connector.base_connector:post:74 - 请求响应:{"code":0,"message":"操作成功OK","data":[],"isSuccess":true}
+2024-05-10 20:05:06.754 | DEBUG    | 28371:4500633088 | connector.base_connector:post:75 - --------------------------------------------------
+2024-05-10 20:05:18.391 | DEBUG    | 28381:4575409664 | connector.base_connector:post:57 - --------------------------------------------------
+2024-05-10 20:05:18.392 | DEBUG    | 28381:4575409664 | connector.base_connector:post:59 - 请求地址:https://ct4.dianbaobao.com/openapi/account/runway/fetch
+2024-05-10 20:05:18.393 | DEBUG    | 28381:4575409664 | connector.base_connector:__generate_md5_signature:52 - 签名数据:worker_id=11715342718ygy@sm$*nvfbqwe@pwnwtmoawbquf4!irmtcqbnc6r4y&wsjt%%w5apwccma^37p
+2024-05-10 20:05:18.394 | DEBUG    | 28381:4575409664 | connector.base_connector:post:70 - 请求header:{'Content-Type': 'application/json', 'x-timestamp': '1715342718', 'x-pid': '541000231', 'x-sign': '03ff4291db1e232b3f20b75b0a09e5c6'}
+2024-05-10 20:05:18.394 | DEBUG    | 28381:4575409664 | connector.base_connector:post:71 - 请求参数:{'worker_id': 1}
+2024-05-10 20:05:18.523 | DEBUG    | 28381:4575409664 | connector.base_connector:post:74 - 请求响应:{"code":0,"message":"操作成功OK","data":[],"isSuccess":true}
+2024-05-10 20:05:18.524 | DEBUG    | 28381:4575409664 | connector.base_connector:post:75 - --------------------------------------------------
